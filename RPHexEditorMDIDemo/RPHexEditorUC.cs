@@ -213,6 +213,36 @@ namespace RPHexEditor
 			}
 		}
 
+		[DefaultValue(true), Category("HexEditor"), Description("Get or set the address line visibility.")]
+		public bool ViewLineAddress
+		{
+			get { return _drawAddressLine; }
+			set
+			{
+				if (_drawAddressLine != value)
+				{
+					_drawAddressLine = value;
+					AdjustWindowSize();
+					Invalidate();
+				}
+			}
+		}
+
+		[DefaultValue(true), Category("HexEditor"), Description("Get or set the character line visibility.")]
+		public bool ViewLineCharacters
+		{
+			get { return _drawAddressLine; }
+			set
+			{
+				if (_drawCharacters != value)
+				{
+					_drawCharacters = value;
+					AdjustWindowSize();
+					Invalidate();
+				}
+			}
+		}
+
 		[DefaultValue(typeof(Color), "Highlight"), Category("HexEditor"), Description("Get or set the selection background color.")]
 		public Color SelectionBackColor
 		{
@@ -714,15 +744,16 @@ namespace RPHexEditor
 				else
 					DrawHexByte(g, theByte, brush, gridPoint);
 
-				if (!_drawCharacters) continue;
-
-				if (isByteSelected)
+				if (_drawCharacters)
 				{
-					g.FillRectangle(selBrushBack, byteStringPointF.X, byteStringPointF.Y, _charSize.Width, _charSize.Height);
-					g.DrawString(GetCharacterFromByte(theByte), Font, selBrush, byteStringPointF, _stringFormat);
+					if (isByteSelected)
+					{
+						g.FillRectangle(selBrushBack, byteStringPointF.X, byteStringPointF.Y, _charSize.Width, _charSize.Height);
+						g.DrawString(GetCharacterFromByte(theByte), Font, selBrush, byteStringPointF, _stringFormat);
+					}
+					else
+						g.DrawString(GetCharacterFromByte(theByte), Font, brush, byteStringPointF, _stringFormat);
 				}
-				else
-					g.DrawString(GetCharacterFromByte(theByte), Font, brush, byteStringPointF, _stringFormat);
 
 				counter++;
 			}
