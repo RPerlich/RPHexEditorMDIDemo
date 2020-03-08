@@ -21,7 +21,8 @@ namespace RPHexEditor
 			hScrollBar.Scroll += new ScrollEventHandler(HScrollBar_Scroll);
 
 			InitializeComponent();
-			
+
+			this.Font = _font;
 			this.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 
 			SetStyle(ControlStyles.AllPaintingInWmPaint, true);
@@ -71,6 +72,7 @@ namespace RPHexEditor
 		long _scrollHmax;
 		long _scrollHpos;
 
+		Font _font = new Font("Consolas", 10);
 		StringFormat _stringFormat;
 		Rectangle _rectContent;
 		Rectangle _recAddressInfo;
@@ -110,60 +112,37 @@ namespace RPHexEditor
 		[DefaultValue(typeof(Color), "White")]
 		public override Color BackColor
 		{
-			get
-			{
-				return base.BackColor;
-			}
+			get { return base.BackColor; }
+			set	{ base.BackColor = value; }
+		}
+
+		[DefaultValue(typeof(Font), "Consolas, 10")]
+		public override Font Font
+		{
+			get	{ return base.Font;	}
 			set
 			{
-				base.BackColor = value;
+				if (value != null && IsMonospaceFont(value))
+				{
+					base.Font = value;
+					this.AdjustWindowSize();
+					this.Invalidate();
+				}
 			}
 		}
 
-		/*public override Font Font
-		{
-			get
-			{
-				return base.Font;
-			}
-			set
-			{
-				if (value == null)
-					return;
-
-				base.Font = value;
-				this.AdjustWindowSize();
-				this.Invalidate();
-			}
-		}*/
-
-		/// <summary>
-		/// Not used.
-		/// </summary>
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), EditorBrowsable(EditorBrowsableState.Never), Bindable(false)]
 		public override string Text
 		{
-			get
-			{
-				return base.Text;
-			}
-			set
-			{
-				base.Text = value;
-			}
+			get	{ return base.Text;	}
+			set	{ base.Text = value; }
 		}
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), EditorBrowsable(EditorBrowsableState.Never), Bindable(false)]
 		public override RightToLeft RightToLeft
 		{
-			get
-			{
-				return base.RightToLeft;
-			}
-			set
-			{
-				base.RightToLeft = value;
-			}
+			get { return base.RightToLeft; }
+			set	{ base.RightToLeft = value;	}
 		}
 		#endregion
         
@@ -2004,7 +1983,45 @@ namespace RPHexEditor
 		{
 			_byteData.CommitChanges();
 		}
-    }
+
+		private bool IsMonospaceFont(Font font)
+		{
+			bool bRet = false;
+
+			using (Graphics g = this.CreateGraphics())
+			{
+				NativeMethods.TEXTMETRICW oTextMetric;
+				IntPtr hFont = IntPtr.Zero;
+				IntPtr hFontDefault = IntPtr.Zero;
+
+				IntPtr hDC = g.GetHdc();
+
+				try
+				{
+					hFont = font.ToHfont();
+					hFontDefault = NativeMethods.SelectObject(hDC, hFont);
+
+					if (NativeMethods.GetTextMetrics(hDC, out oTextMetric))
+					{
+						if ((oTextMetric.tmPitchAndFamily & 1) == 0)
+							bRet = true;
+					}
+				}
+				finally
+				{
+					if (hFontDefault != IntPtr.Zero)
+						NativeMethods.SelectObject(hDC, hFontDefault);
+
+					if (hFont != IntPtr.Zero)
+						NativeMethods.DeleteObject(hFont);
+				}
+
+				g.ReleaseHdc(hDC);
+			}
+
+			return bRet;
+		}
+	}
 
 	enum ClickAreas { AREA_NONE, AREA_ADDRESS, AREA_BYTES, AREA_CHARS }
 	enum EnterMode { BYTES, CHARS }
@@ -2043,6 +2060,31 @@ namespace RPHexEditor
 
 	internal static class NativeMethods
 	{
+		[StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+		public struct TEXTMETRICW
+		{
+			public int tmHeight;
+			public int tmAscent;
+			public int tmDescent;
+			public int tmInternalLeading;
+			public int tmExternalLeading;
+			public int tmAveCharWidth;
+			public int tmMaxCharWidth;
+			public int tmWeight;
+			public int tmOverhang;
+			public int tmDigitizedAspectX;
+			public int tmDigitizedAspectY;
+			public ushort tmFirstChar;
+			public ushort tmLastChar;
+			public ushort tmDefaultChar;
+			public ushort tmBreakChar;
+			public byte tmItalic;
+			public byte tmUnderlined;
+			public byte tmStruckOut;
+			public byte tmPitchAndFamily;
+			public byte tmCharSet;
+		}
+
 		[DllImport("user32.dll", SetLastError = true)]
 		public static extern bool CreateCaret(IntPtr hWnd, IntPtr hBitmap, int nWidth, int nHeight);
 
@@ -2054,6 +2096,15 @@ namespace RPHexEditor
 
 		[DllImport("user32.dll", SetLastError = true)]
 		public static extern bool SetCaretPos(int X, int Y);
+
+		[DllImport("gdi32.dll", CharSet = CharSet.Auto)]
+		public static extern bool GetTextMetrics(IntPtr hdc, out TEXTMETRICW lptm);
+
+		[DllImport("gdi32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+		public static extern bool DeleteObject(IntPtr hObject);
+
+		[DllImport("gdi32.dll", CharSet = CharSet.Auto)]
+		public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiObj);
 	}
 
 	internal interface IRPHexEditorCharEncoder	{
