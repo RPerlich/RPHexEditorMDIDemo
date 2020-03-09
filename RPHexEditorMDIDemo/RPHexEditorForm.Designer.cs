@@ -24,7 +24,6 @@
 			this.rpHexEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.rpHexEditor.BackColor = System.Drawing.SystemColors.Control;
 			this.rpHexEditor.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.rpHexEditor.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.rpHexEditor.ImeMode = System.Windows.Forms.ImeMode.On;

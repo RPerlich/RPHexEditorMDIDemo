@@ -32,5 +32,11 @@ namespace RPHexEditorMDIDemo
 		{
 			rpHexEditorUC1.ViewLineCharacters = cbLineCharacter.Checked;
 		}
+
+		private void button3_Click(object sender, EventArgs e)
+		{
+			if (colorDialog1.ShowDialog() == DialogResult.OK)
+				rpHexEditorUC1.AddressLineColor = colorDialog1.Color;
+		}
 	}
 }

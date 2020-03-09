@@ -75,10 +75,13 @@ namespace RPHexEditor
 		Font _font = new Font("Consolas", 10);
 		StringFormat _stringFormat;
 		Rectangle _rectContent;
-		Rectangle _recAddressInfo;
-		Rectangle _recHex;
-		Rectangle _recChars;
+		Rectangle _recAddressLine;
+		Rectangle _recHexLine;
+		Rectangle _recCharLine;
 		SizeF _charSize;
+		Color _addressLineColor = Color.FloralWhite;
+		Color _hexLineColor = Color.AliceBlue;
+		Color _charLineColor = SystemColors.Control;
 		Color _selectionBackColor = SystemColors.Highlight;
 		Color _selectionForeColor = SystemColors.HighlightText;
 		IByteData _byteData;
@@ -109,11 +112,68 @@ namespace RPHexEditor
 		ToolStripMenuItem _internalSelectAllMenuItem = null;
 
 		#region Overridden properties
-		[DefaultValue(typeof(Color), "White")]
+
+		[DefaultValue(typeof(Color), "Control")]
 		public override Color BackColor
 		{
 			get { return base.BackColor; }
-			set	{ base.BackColor = value; }
+			set
+			{
+				if (base.BackColor != value)
+				{
+					base.BackColor = value;
+					Invalidate();
+				}
+			}
+		}
+
+		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+		public override Color ForeColor
+		{
+			get { return base.ForeColor; }
+			set { base.ForeColor = value; }
+		}
+
+		[DefaultValue(typeof(Color), "FloralWhite"), Category("HexEditor"), Description("Get or set the color for the address line.")]
+		public Color AddressLineColor
+		{
+			get { return _addressLineColor; }
+			set
+			{
+				if (_addressLineColor != value)
+				{
+					_addressLineColor = value;
+					if (_drawAddressLine) Invalidate();
+				}
+			}
+		}
+
+		[DefaultValue(typeof(Color), "AliceBlue"), Category("HexEditor"), Description("Get or set the color for the hexadecimal line.")]
+		public Color HexadecimalLineColor
+		{
+			get { return _hexLineColor; }
+			set
+			{
+				if (_hexLineColor != value)
+				{
+					_hexLineColor = value;
+					Invalidate();
+				}
+			}
+		}
+
+		[DefaultValue(typeof(Color), "Control"), Category("HexEditor"), Description("Get or set the color for the character line.")]
+		public Color CharacterLineColor
+		{
+			get { return _charLineColor; }
+			set
+			{
+				if (_charLineColor != value)
+				{
+					_charLineColor = value;
+					if (_drawCharacters) Invalidate();
+				}
+			}
 		}
 
 		[DefaultValue(typeof(Font), "Consolas, 10")]
@@ -295,7 +355,6 @@ namespace RPHexEditor
 			}
 		}
 
-
         [Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public IByteData ByteDataSource
 		{
@@ -378,9 +437,10 @@ namespace RPHexEditor
 
 		protected override void OnPaintBackground(PaintEventArgs e)
 		{
-			e.Graphics.FillRectangle(new SolidBrush(BackColor), ClientRectangle);
-			e.Graphics.FillRectangle(new SolidBrush(Color.FloralWhite), _recAddressInfo);
-			e.Graphics.FillRectangle(new SolidBrush(Color.AliceBlue), _recHex);
+			e.Graphics.FillRectangle(new SolidBrush(BackColor), ClientRectangle);			
+			e.Graphics.FillRectangle(new SolidBrush(AddressLineColor), _recAddressLine);
+			e.Graphics.FillRectangle(new SolidBrush(HexadecimalLineColor), _recHexLine);
+			e.Graphics.FillRectangle(new SolidBrush(CharacterLineColor), _recCharLine);
 		}
 
 		protected override void OnPaint(PaintEventArgs e)
@@ -419,13 +479,13 @@ namespace RPHexEditor
 
 				Point p = new Point(e.X, e.Y);
 
-				if (_recAddressInfo.Contains(p))
+				if (_recAddressLine.Contains(p))
 					_clickArea = ClickAreas.AREA_ADDRESS;
 
-				if (_recHex.Contains(p))
+				if (_recHexLine.Contains(p))
 					_clickArea = ClickAreas.AREA_BYTES;
 
-				if (_recChars.Contains(p))
+				if (_recCharLine.Contains(p))
 					_clickArea = ClickAreas.AREA_CHARS;
 
 				if (_clickArea == ClickAreas.AREA_BYTES || _clickArea == ClickAreas.AREA_CHARS)
@@ -589,24 +649,24 @@ namespace RPHexEditor
 
 			if (_drawAddressLine)
 			{
-				_recAddressInfo = new Rectangle(_rectContent.X - (int)this._charSize.Width * (int)_scrollHpos,
+				_recAddressLine = new Rectangle(_rectContent.X - (int)this._charSize.Width * (int)_scrollHpos,
 											_rectContent.Y,
 											(int)(this._charSize.Width * 9), _rectContent.Height);
 			}
 			else
 			{
-				_recAddressInfo = Rectangle.Empty;
-				_recAddressInfo.X = _rectContent.X - (int)this._charSize.Width * (int)_scrollHpos;
+				_recAddressLine = Rectangle.Empty;
+				_recAddressLine.X = _rectContent.X - (int)this._charSize.Width * (int)_scrollHpos;
 			}
 
-			_recHex = new Rectangle(_recAddressInfo.X + _recAddressInfo.Width,
-									_recAddressInfo.Y,
-									_rectContent.Width - _recAddressInfo.Width,
+			_recHexLine = new Rectangle(_recAddressLine.X + _recAddressLine.Width,
+									_recAddressLine.Y,
+									_rectContent.Width - _recAddressLine.Width,
 									_rectContent.Height);
 
 			if (_autoBytesPerLine)
 			{
-				int hmax = (int)Math.Floor((double)_recHex.Width / (double)this._charSize.Width);
+				int hmax = (int)Math.Floor((double)_recHexLine.Width / (double)this._charSize.Width);
 
 				if (_drawCharacters)
 				{
@@ -623,20 +683,20 @@ namespace RPHexEditor
 					else
 						SetHorizontalByteCount(1);
 				}
-				_recHex.Width = (int)Math.Floor(((double)_iHexMaxHBytes) * this._charSize.Width * 3 + (2 * this._charSize.Width));
+				_recHexLine.Width = (int)Math.Floor(((double)_iHexMaxHBytes) * this._charSize.Width * 3 + (2 * this._charSize.Width));
 			}
 			else
 			{
 				SetHorizontalByteCount(_bytesPerLine);
-				_recHex.Width = (int)Math.Floor(((double)_iHexMaxHBytes) * this._charSize.Width * 3 + this._charSize.Width);
+				_recHexLine.Width = (int)Math.Floor(((double)_iHexMaxHBytes) * this._charSize.Width * 3 + this._charSize.Width);
 			}
 
 
-			_recChars = (_drawCharacters) ?
-				new Rectangle(_recHex.X + _recHex.Width, _recHex.Y, (int)(this._charSize.Width * _iHexMaxHBytes), _recHex.Height) :
+			_recCharLine = (_drawCharacters) ?
+				new Rectangle(_recHexLine.X + _recHexLine.Width, _recHexLine.Y, (int)(this._charSize.Width * _iHexMaxHBytes), _recHexLine.Height) :
 				Rectangle.Empty;
 
-			_iHexMaxVBytes = (int)Math.Floor((double)_recHex.Height / (double)this._charSize.Height);
+			_iHexMaxVBytes = (int)Math.Floor((double)_recHexLine.Height / (double)this._charSize.Height);
 			_iHexMaxBytes = _iHexMaxHBytes * _iHexMaxVBytes;
 
 			UpdateScrollBars();
@@ -684,7 +744,7 @@ namespace RPHexEditor
 				PointF physBytePos = LogToPhyPoint(new PointL(0, i));
 				sLineAddress = lineAddress.ToString(_lineAddressFormat, System.Threading.Thread.CurrentThread.CurrentCulture);
 
-				g.DrawString(sLineAddress, this.Font, lineBrush, new PointF(_recAddressInfo.X, physBytePos.Y), _stringFormat);								
+				g.DrawString(sLineAddress, this.Font, lineBrush, new PointF(_recAddressLine.X, physBytePos.Y), _stringFormat);								
             }
         }
 
@@ -783,25 +843,18 @@ namespace RPHexEditor
 
 		PointF LogToPhyPoint(PointL pt)
         {
-            float x = (3 * _charSize.Width) * pt.X + _recHex.X;
-            float y = (pt.Y + 1) * _charSize.Height - _charSize.Height + _recHex.Y;
+            float x = (3 * _charSize.Width) * pt.X + _recHexLine.X;
+            float y = (pt.Y + 1) * _charSize.Height - _charSize.Height + _recHexLine.Y;
 
             return new PointF(x, y);
         }		
 
 		PointF LogToPhyPointASCII(PointL pt)
 		{
-			float x = (_charSize.Width) * pt.X + _recChars.X;
-			float y = (pt.Y + 1) * _charSize.Height - _charSize.Height + _recChars.Y;
+			float x = (_charSize.Width) * pt.X + _recCharLine.X;
+			float y = (pt.Y + 1) * _charSize.Height - _charSize.Height + _recCharLine.Y;
 
 			return new PointF(x, y);
-		}
-	
-
-		int ToScrollMax(long value)
-		{
-			long max = 65535;
-			return (value > max) ? (int)max : (int)value;
 		}
 
 		void VScrollBar_Scroll(object sender, ScrollEventArgs e)
@@ -845,7 +898,7 @@ namespace RPHexEditor
 					break;
 			}
 
-			e.NewValue = ToScrollVPos(_scrollVpos);
+			e.NewValue = GetVScrollPosition(_scrollVpos);
 		}
 
 		void HScrollBar_Scroll(object sender, ScrollEventArgs e)
@@ -889,7 +942,7 @@ namespace RPHexEditor
 					break;
 			}
 
-			e.NewValue = ToScrollVPos(_scrollHpos);
+			e.NewValue = GetHScrollPosition(_scrollHpos);
 		}
 
 		void UpdateScrollBars()
@@ -912,9 +965,7 @@ namespace RPHexEditor
 
 				if (scrollVmax < _scrollVmax)
 				{
-					/* Data size has been decreased. */
 					if (_scrollVpos == _scrollVmax)
-						/* Scroll one line up if we at bottom. */
 						VScrollLineUp();
 				}
 
@@ -942,58 +993,54 @@ namespace RPHexEditor
 
 		void UpdateVScroll()
 		{
-			int max = ToScrollMax(_scrollVmax);
+			int max = (_scrollVmax > Int32.MaxValue) ? Int32.MaxValue : (int)_scrollVmax;
 			vScrollBar.Visible = (max > 0 ? true : false);
 
 			if (max > 0)
 			{
 				vScrollBar.Minimum = 0;
 				vScrollBar.Maximum = max;
-				vScrollBar.Value = Math.Min(ToScrollVPos(_scrollVpos), max);
+				vScrollBar.Value = GetVScrollPosition(_scrollVpos);
 				_thumbTrackVPosition = vScrollBar.Value; 
 			}
 		}
 
 		void UpdateHScroll()
 		{
-			int max = ToScrollMax(_scrollHmax);
+			int max = (_scrollHmax > Int32.MaxValue) ? Int32.MaxValue : (int)_scrollHmax;
 			hScrollBar.Visible = (max > 0 ? true : false);
 
 			if (max > 0)
 			{
 				hScrollBar.Minimum = 0;
 				hScrollBar.Maximum = max;
-				hScrollBar.Value = ToScrollHPos(_scrollHpos);
+				hScrollBar.Value = GetHScrollPosition(_scrollHpos);
 				_thumbTrackHPosition = hScrollBar.Value;
 			}
 		}
 
-		int ToScrollVPos(long value)
+		int GetVScrollPosition(long value)
 		{
-			int max = 65535;
-
-			if (_scrollVmax < max)
+			if (_scrollVmax < Int32.MaxValue)
 				return (int)value;
 			else
 			{
 				double valperc = (double)value / (double)_scrollVmax * (double)100;
-				int res = (int)Math.Floor((double)max / (double)100 * valperc);
+				int res = (int)Math.Floor((double)Int32.MaxValue / (double)100 * valperc);
 				res = (int)Math.Max(_scrollVmin, res);
 				res = (int)Math.Min(_scrollVmax, res);
 				return res;
 			}
 		}
 
-		int ToScrollHPos(long value)
+		int GetHScrollPosition(long value)
 		{
-			int max = 65535;
-
-			if (_scrollHmax < max)
+			if (_scrollHmax < Int32.MaxValue)
 				return (int)value;
 			else
 			{
 				double valperc = (double)value / (double)_scrollHmax * (double)100;
-				int res = (int)Math.Floor((double)max / (double)100 * valperc);
+				int res = (int)Math.Floor((double)Int32.MaxValue / (double)100 * valperc);
 				res = (int)Math.Max(_scrollHmin, res);
 				res = (int)Math.Min(_scrollHmax, res);
 				return res;
@@ -1066,7 +1113,7 @@ namespace RPHexEditor
 
 		void VScrollSetThumpPosition(long scrollPos)
 		{
-			VScrollToLine(ToScrollVPos(scrollPos));
+			VScrollToLine(GetVScrollPosition(scrollPos));
 		}
 
 		void VScrollThumbTrack(object sender, EventArgs e)
@@ -1129,7 +1176,7 @@ namespace RPHexEditor
 
 		void HScrollSetThumpPosition(long scrollPos)
 		{
-			HScrollToColumn(ToScrollHPos(scrollPos));
+			HScrollToColumn(GetHScrollPosition(scrollPos));
 		}
 
 		void HScrollThumbTrack(object sender, EventArgs e)
@@ -1240,12 +1287,12 @@ namespace RPHexEditor
 			int xPos = 0;
 			int yPos = 0;
 
-			if (_recHex.Contains(p))
+			if (_recHexLine.Contains(p))
 			{
-				_isNibble = (((int)((p.X - _recHex.X) / _charSize.Width)) % 3) > 0;
+				_isNibble = (((int)((p.X - _recHexLine.X) / _charSize.Width)) % 3) > 0;
 
-				xPos = (int)((p.X - _recHex.X) / _charSize.Width / 3);
-				yPos = (int)((p.Y - _recHex.Y) / _charSize.Height) + 1;
+				xPos = (int)((p.X - _recHexLine.X) / _charSize.Width / 3);
+				yPos = (int)((p.Y - _recHexLine.Y) / _charSize.Height) + 1;
 
 				_bytePos = _startByte + _iHexMaxHBytes * yPos - _iHexMaxHBytes + xPos;
 
@@ -1256,12 +1303,12 @@ namespace RPHexEditor
 					_isNibble = false;
 			}
 
-			if (_recChars.Contains(p))
+			if (_recCharLine.Contains(p))
 			{
 				_isNibble = false;
 
-				xPos = (int)((p.X - _recChars.X) / _charSize.Width);
-				yPos = (int)((p.Y - _recChars.Y) / _charSize.Height) + 1;
+				xPos = (int)((p.X - _recCharLine.X) / _charSize.Width);
+				yPos = (int)((p.Y - _recCharLine.Y) / _charSize.Height) + 1;
 
 				_bytePos = _startByte + (_iHexMaxHBytes * yPos - _iHexMaxHBytes) + xPos;
 			

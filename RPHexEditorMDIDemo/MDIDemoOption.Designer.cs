@@ -34,6 +34,8 @@
 			this.cb_LineAddress = new System.Windows.Forms.CheckBox();
 			this.button2 = new System.Windows.Forms.Button();
 			this.fontDialog1 = new System.Windows.Forms.FontDialog();
+			this.colorDialog1 = new System.Windows.Forms.ColorDialog();
+			this.button3 = new System.Windows.Forms.Button();
 			this.rpHexEditorUC1 = new RPHexEditor.RPHexEditorUC();
 			this.SuspendLayout();
 			// 
@@ -60,7 +62,7 @@
 			// cbLineCharacter
 			// 
 			this.cbLineCharacter.AutoSize = true;
-			this.cbLineCharacter.Location = new System.Drawing.Point(92, 160);
+			this.cbLineCharacter.Location = new System.Drawing.Point(153, 154);
 			this.cbLineCharacter.Name = "cbLineCharacter";
 			this.cbLineCharacter.Size = new System.Drawing.Size(121, 17);
 			this.cbLineCharacter.TabIndex = 6;
@@ -71,7 +73,7 @@
 			// cb_LineAddress
 			// 
 			this.cb_LineAddress.AutoSize = true;
-			this.cb_LineAddress.Location = new System.Drawing.Point(92, 137);
+			this.cb_LineAddress.Location = new System.Drawing.Point(153, 131);
 			this.cb_LineAddress.Name = "cb_LineAddress";
 			this.cb_LineAddress.Size = new System.Drawing.Size(108, 17);
 			this.cb_LineAddress.TabIndex = 5;
@@ -83,7 +85,7 @@
 			// 
 			this.button2.Location = new System.Drawing.Point(11, 131);
 			this.button2.Name = "button2";
-			this.button2.Size = new System.Drawing.Size(75, 23);
+			this.button2.Size = new System.Drawing.Size(111, 23);
 			this.button2.TabIndex = 4;
 			this.button2.Text = "Set font";
 			this.button2.UseVisualStyleBackColor = true;
@@ -93,15 +95,24 @@
 			// 
 			this.fontDialog1.FixedPitchOnly = true;
 			// 
+			// button3
+			// 
+			this.button3.Location = new System.Drawing.Point(11, 160);
+			this.button3.Name = "button3";
+			this.button3.Size = new System.Drawing.Size(111, 23);
+			this.button3.TabIndex = 7;
+			this.button3.Text = "Set color (Address)";
+			this.button3.UseVisualStyleBackColor = true;
+			this.button3.Click += new System.EventHandler(this.button3_Click);
+			// 
 			// rpHexEditorUC1
 			// 
-			this.rpHexEditorUC1.BackColor = System.Drawing.SystemColors.Control;
 			this.rpHexEditorUC1.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.rpHexEditorUC1.BytesPerLine = 8;
 			this.rpHexEditorUC1.Font = new System.Drawing.Font("Consolas", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.rpHexEditorUC1.Location = new System.Drawing.Point(11, 28);
 			this.rpHexEditorUC1.Name = "rpHexEditorUC1";
-			this.rpHexEditorUC1.Size = new System.Drawing.Size(370, 97);
+			this.rpHexEditorUC1.Size = new System.Drawing.Size(377, 97);
 			this.rpHexEditorUC1.TabIndex = 0;
 			// 
 			// MDIDemoOption
@@ -110,6 +121,7 @@
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.CancelButton = this.button1;
 			this.ClientSize = new System.Drawing.Size(400, 216);
+			this.Controls.Add(this.button3);
 			this.Controls.Add(this.cbLineCharacter);
 			this.Controls.Add(this.cb_LineAddress);
 			this.Controls.Add(this.button2);
@@ -135,5 +147,7 @@
 		private System.Windows.Forms.CheckBox cb_LineAddress;
 		private System.Windows.Forms.Button button2;
 		private System.Windows.Forms.FontDialog fontDialog1;
+		private System.Windows.Forms.ColorDialog colorDialog1;
+		private System.Windows.Forms.Button button3;
 	}
 }
