@@ -59,6 +59,7 @@ namespace RPHexEditor
 		bool _drawCharacters = true;
 		bool _drawAddressLine = true;
 		bool _caretVisible = false;
+		bool _showChangesWithColor = false;
 		string _lineAddressFormat = "X8";
 		string _lineByteFormat = "X2";
 		int _iHexMaxHBytes;
@@ -84,6 +85,7 @@ namespace RPHexEditor
 		Color _charLineColor = SystemColors.Control;
 		Color _selectionBackColor = SystemColors.Highlight;
 		Color _selectionForeColor = SystemColors.HighlightText;
+		Color _changedForColor = Color.IndianRed;
 		IByteData _byteData;
 
 		long _bytePos = 0;
@@ -315,6 +317,27 @@ namespace RPHexEditor
 		{
 			get { return _selectionForeColor; }
 			set { _selectionForeColor = value; Invalidate(); }
+		}
+
+		[DefaultValue(typeof(Color), "IndianRed"), Category("HexEditor"), Description("Get or set the color for changed values.")]
+		public Color ChangesForColor
+		{
+			get { return _changedForColor; }
+			set { _changedForColor = value; Invalidate(); }
+		}
+
+		[DefaultValue(false), Category("HexEditor"), Description("Get or set whether changed values have a different color.")]
+		public bool ShowChangesWithColor
+		{
+			get { return _showChangesWithColor; }
+			set
+			{
+				if (_showChangesWithColor == value)
+					return;
+
+				_showChangesWithColor = value;				
+				Invalidate();
+			}
 		}
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -772,13 +795,16 @@ namespace RPHexEditor
 			Brush brush = new SolidBrush(GetDefaultForeColor());
 			Brush selBrush = new SolidBrush(_selectionForeColor);
 			Brush selBrushBack = new SolidBrush(_selectionBackColor);
+			Brush changedBrush = new SolidBrush(_changedForColor);
 
+			bool isChanged = false;
 			long counter = 0;
+
 			long tmpEndByte = Math.Min(_byteData.Length - 1, endByte + _iHexMaxHBytes);
 
 			for (long i = startByte; i < tmpEndByte + 1; i++)
 			{
-				byte theByte = _byteData.ReadByte(i);
+				byte theByte = _showChangesWithColor ? _byteData.ReadByte(i, out isChanged) : _byteData.ReadByte(i);
 
 				PointL gridPoint = PosToLogPoint(counter);
 				PointF byteStringPointF = LogToPhyPointASCII(gridPoint);
@@ -800,19 +826,19 @@ namespace RPHexEditor
 				bool isLastBytePos = (gridPoint.X + 1 == _iHexMaxHBytes);
 
 				if (isByteSelected)
-					DrawSelectedHexByte(g, theByte, selBrush, selBrushBack, gridPoint, (i == tmpEndSelection || isLastBytePos));
+					DrawSelectedHexByte(g, theByte, isChanged ? changedBrush : selBrush, selBrushBack, gridPoint, (i == tmpEndSelection || isLastBytePos));
 				else
-					DrawHexByte(g, theByte, brush, gridPoint);
+					DrawHexByte(g, theByte, isChanged ? changedBrush : brush, gridPoint);
 
 				if (_drawCharacters)
 				{
 					if (isByteSelected)
 					{
 						g.FillRectangle(selBrushBack, byteStringPointF.X, byteStringPointF.Y, _charSize.Width, _charSize.Height);
-						g.DrawString(GetCharacterFromByte(theByte), Font, selBrush, byteStringPointF, _stringFormat);
+						g.DrawString(GetCharacterFromByte(theByte), Font, isChanged ? changedBrush : selBrush, byteStringPointF, _stringFormat);
 					}
 					else
-						g.DrawString(GetCharacterFromByte(theByte), Font, brush, byteStringPointF, _stringFormat);
+						g.DrawString(GetCharacterFromByte(theByte), Font, isChanged ? changedBrush : brush, byteStringPointF, _stringFormat);
 				}
 
 				counter++;

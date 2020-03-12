@@ -30,6 +30,7 @@
 			this.rpHexEditor.Location = new System.Drawing.Point(0, 0);
 			this.rpHexEditor.MinimumSize = new System.Drawing.Size(5, 5);
 			this.rpHexEditor.Name = "rpHexEditor";
+			this.rpHexEditor.ShowChangesWithColor = true;
 			this.rpHexEditor.Size = new System.Drawing.Size(477, 365);
 			this.rpHexEditor.TabIndex = 0;
 			this.rpHexEditor.ReadOnlyChanged += new System.EventHandler(this.rpHexEditor_ReadOnlyChanged);

@@ -171,6 +171,7 @@ namespace RPHexEditor
 	public interface IByteData
 	{
 		byte ReadByte(long index);
+		byte ReadByte(long index, out bool isChanged);
 		void WriteByte(long index, byte value);
 		void InsertBytes(long index, byte[] value);
 		void DeleteBytes(long index, long length);
@@ -464,6 +465,33 @@ namespace RPHexEditor
 				throw new ArgumentNullException("index", "FileByteData.ReadByte: The internal BytePartList is corrupt.");
 		}
 
+		public byte ReadByte(long index, out bool isChanged)
+		{
+			long startIndex = 0;
+			isChanged = false;
+
+			BytePart bytePart = BytePartGetInfo(index, out startIndex);
+
+			FileBytePart fileBytePart = bytePart as FileBytePart;
+			MemoryBytePart memoryBytePart = bytePart as MemoryBytePart;
+
+			if (fileBytePart != null)
+			{
+				if (_fileDataStream.Position != fileBytePart.FilePartIndex + index - startIndex)
+					_fileDataStream.Position = fileBytePart.FilePartIndex + index - startIndex;
+
+				return (byte)_fileDataStream.ReadByte();
+			}
+
+			if (memoryBytePart != null)
+			{
+				isChanged = true;
+				return memoryBytePart.Bytes[index - startIndex];
+			}
+			else
+				throw new ArgumentNullException("index", "FileByteData.ReadByte: The internal BytePartList is corrupt.");
+		}
+
 		public void WriteByte(long index, byte value)
 		{
 			long startIndex = 0;
@@ -719,6 +747,12 @@ namespace RPHexEditor
 		public byte ReadByte(long index)
 		{ 
 			return _bytes[(int)index]; 
+		}
+
+		public byte ReadByte(long index, out bool isChanged)
+		{
+			isChanged = true;
+			return _bytes[(int)index];
 		}
 
 		public void WriteByte(long index, byte value)
