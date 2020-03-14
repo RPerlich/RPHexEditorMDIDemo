@@ -258,49 +258,44 @@ namespace RPHexEditorMDIDemo
 
 			ToolStripMenuItem tsmCopy = ((MDIDemo)MdiParent).GetTSM_Copy;
 			ToolStripButton tsbCopy = ((MDIDemo)MdiParent).GetTSB_Copy;
-			
-			if (tsmCopy.Enabled != rpHexEditor.HasSelection() && rpHexEditor.ByteDataSource != null)
-			{
-				tsmCopy.Enabled = rpHexEditor.HasSelection() && rpHexEditor.ByteDataSource != null;
+						
+			if (tsmCopy.Enabled != rpHexEditor.IsCmdCopyAvailable )
+				{
+				tsmCopy.Enabled = rpHexEditor.IsCmdCopyAvailable;
 				tsbCopy.Enabled = tsmCopy.Enabled;
 			}
 
 			ToolStripMenuItem tsmCut = ((MDIDemo)MdiParent).GetTSM_Cut;
 			ToolStripButton tsbCut = ((MDIDemo)MdiParent).GetTSB_Cut;
 			
-			if (tsmCut.Enabled != rpHexEditor.HasSelection() && rpHexEditor.ByteDataSource != null && !rpHexEditor.ReadOnly && rpHexEditor.Enabled)
+			if (tsmCut.Enabled != rpHexEditor.IsCmdCutAvailable)
 			{
-				tsmCut.Enabled = rpHexEditor.HasSelection() && rpHexEditor.ByteDataSource != null && !rpHexEditor.ReadOnly && rpHexEditor.Enabled;
+				tsmCut.Enabled = rpHexEditor.IsCmdCutAvailable;
 				tsbCut.Enabled = tsmCut.Enabled;
 			}
 
 			ToolStripMenuItem tsmPaste = ((MDIDemo)MdiParent).GetTSM_Paste;
 			ToolStripButton tsbPaste = ((MDIDemo)MdiParent).GetTSB_Paste;
-			DataObject clip_DO = Clipboard.GetDataObject() as DataObject;
 
-			if (clip_DO == null || rpHexEditor.ByteDataSource == null || rpHexEditor.ReadOnly || !rpHexEditor.Enabled)
+			if (tsmPaste.Enabled != rpHexEditor.IsCmdPasteAvailable)
 			{
-				tsmPaste.Enabled = false;
-				tsbPaste.Enabled = false;
-			}
-			else
-			{
-				if (tsmPaste.Enabled != clip_DO.GetDataPresent("rawbinary") || clip_DO.GetDataPresent(typeof(string)))
-				{
-					tsmPaste.Enabled = clip_DO.GetDataPresent("rawbinary") || clip_DO.GetDataPresent(typeof(string));
-					tsbPaste.Enabled = tsmPaste.Enabled;
-				}
+				tsmPaste.Enabled = rpHexEditor.IsCmdPasteAvailable;
+				tsbPaste.Enabled = tsmPaste.Enabled;
 			}
 
 			ToolStripMenuItem tsmSelectAll = ((MDIDemo)MdiParent).GetTSM_SelectAll;
 
-			if (tsmSelectAll.Enabled != (rpHexEditor.ByteDataSource != null) && rpHexEditor.Enabled)
-				tsmSelectAll.Enabled = (rpHexEditor.ByteDataSource != null) && rpHexEditor.Enabled;
+			if (tsmSelectAll.Enabled != rpHexEditor.IsCmdSelectAvailable)
+				tsmSelectAll.Enabled = rpHexEditor.IsCmdSelectAvailable;
 
 			ToolStripMenuItem tsmUndo = ((MDIDemo)MdiParent).GetTSM_Undo;
+			ToolStripButton tsbUndo = ((MDIDemo)MdiParent).GetTSB_Undo;
 
-			if (tsmUndo.Enabled != rpHexEditor.IsUndoAvailable)
-				tsmUndo.Enabled = rpHexEditor.IsUndoAvailable;
+			if (tsmUndo.Enabled != rpHexEditor.IsCmdUndoAvailable)
+			{
+				tsmUndo.Enabled = rpHexEditor.IsCmdUndoAvailable;
+				tsbUndo.Enabled = tsmUndo.Enabled;
+			}
 		}
     }
 }

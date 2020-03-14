@@ -422,9 +422,41 @@ namespace RPHexEditor
         }
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-		public bool IsUndoAvailable
+		public bool IsCmdUndoAvailable
 		{
 			get { return ByteDataSource.IsUndoAvailable; }
+		}
+
+		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsCmdCopyAvailable
+		{
+			get { return (ByteDataSource != null && this.HasSelection() && this.Enabled); }
+		}
+
+		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsCmdPasteAvailable
+		{
+			get
+			{
+				DataObject clip_DO = Clipboard.GetDataObject() as DataObject;
+
+				if (clip_DO == null || ByteDataSource == null || ReadOnly || !this.Enabled)
+					return false;
+
+				return (clip_DO.GetDataPresent("rawbinary") || clip_DO.GetDataPresent(typeof(string)));
+			}
+		}
+
+		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsCmdCutAvailable
+		{
+			get { return (ByteDataSource != null && !this.ReadOnly && this.HasSelection() && this.Enabled); }
+		}
+
+		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsCmdSelectAvailable
+		{
+			get { return (ByteDataSource != null && this.Enabled); }
 		}
 
 		#endregion
@@ -1389,6 +1421,9 @@ namespace RPHexEditor
 
 		public void SetSelection(long selStart, long selEnd)
 		{
+			if (!IsCmdSelectAvailable)
+				return;
+
 			RemoveSelection();
 
 			long tmpStartSelection = Math.Min(selStart, _byteData.Length - 1);
@@ -1413,6 +1448,9 @@ namespace RPHexEditor
 
 		public void SelectAll()
 		{
+			if (!IsCmdSelectAvailable)
+				return;
+
 			RemoveSelection();
 
 			_startSelection = 0;
@@ -1882,7 +1920,7 @@ namespace RPHexEditor
 		{
 			bool bRet = false;
 
-			if (!this.HasSelection() || _byteData == null)
+			if (!IsCmdCopyAvailable)
 				return bRet;
 
 			byte[] byteCopyData = null;
@@ -1918,7 +1956,7 @@ namespace RPHexEditor
 			bool bRet = false;
 			byte[] bytePasteData = null;
 
-			if (_byteData == null || this._readOnly)
+			if (!IsCmdPasteAvailable)
 				return bRet;
 
 			try
@@ -1973,7 +2011,7 @@ namespace RPHexEditor
 		{
 			bool bRet = false;
 
-			if (!this.HasSelection() || this._readOnly || _byteData == null)
+			if (!IsCmdCutAvailable)
 				return bRet;
 
 			try
@@ -1998,7 +2036,7 @@ namespace RPHexEditor
 
 		public void Undo()
 		{
-			if (IsUndoAvailable)
+			if (IsCmdUndoAvailable)
 			{
 				_byteData.Undo();
 				Invalidate();
@@ -2089,16 +2127,10 @@ namespace RPHexEditor
 
 		void InternalContextMenu_Opening(object sender, CancelEventArgs e)
 		{
-			_internalCutMenuItem.Enabled = HasSelection() && _byteData != null && !ReadOnly && Enabled;
-			_internalCopyMenuItem.Enabled = HasSelection() && _byteData != null;
-
-			DataObject clip_DO = Clipboard.GetDataObject() as DataObject;
-
-			if (clip_DO == null || _byteData == null || ReadOnly || !Enabled)
-				_internalPasteMenuItem.Enabled = false;
-			else
-				_internalPasteMenuItem.Enabled = clip_DO.GetDataPresent("rawbinary") || clip_DO.GetDataPresent(typeof(string));
-			_internalSelectAllMenuItem.Enabled = _byteData != null && Enabled;
+			_internalCutMenuItem.Enabled = this.IsCmdCutAvailable;
+			_internalCopyMenuItem.Enabled = this.IsCmdCopyAvailable;
+			_internalPasteMenuItem.Enabled = this.IsCmdPasteAvailable;
+			_internalSelectAllMenuItem.Enabled = this.IsCmdSelectAvailable;
 		}
 
 		public void CommitChanges()

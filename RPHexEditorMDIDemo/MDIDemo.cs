@@ -73,6 +73,11 @@ namespace RPHexEditorMDIDemo
 			get { return this.selectAllToolStripMenuItem; }
 		}
 
+		public ToolStripButton GetTSB_Undo
+		{
+			get { return this.undoToolStripButton; }
+		}
+
 		public ToolStripButton GetTSB_Copy
 		{
 			get { return this.copyToolStripButton; }
@@ -251,17 +256,17 @@ namespace RPHexEditorMDIDemo
 				this.cutToolStripMenuItem.Enabled = false;
 				this.pasteToolStripMenuItem.Enabled = false;
 				this.selectAllToolStripMenuItem.Enabled = false;
+				this.undoToolStripMenuItem.Enabled = false;
+				this.redoToolStripMenuItem.Enabled = false;
 				this.copyToolStripButton.Enabled = false;
 				this.cutToolStripButton.Enabled = false;
 				this.pasteToolStripButton.Enabled = false;
-				this.undoToolStripMenuItem.Enabled = false;
-				this.redoToolStripMenuItem.Enabled = false;
+				this.undoToolStripButton.Enabled = false;
 			}
 
 			this.saveToolStripMenuItem.Enabled = MdiChildren.Length > 0;
 			this.saveAsToolStripMenuItem.Enabled = MdiChildren.Length > 0;
 			this.saveToolStripButton.Enabled = this.saveAsToolStripMenuItem.Enabled;
 		}
-
 	}
 }
