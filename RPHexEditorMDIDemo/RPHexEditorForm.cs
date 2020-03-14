@@ -57,12 +57,21 @@ namespace RPHexEditorMDIDemo
 		{
 			bool bRet = false;
 
-			this._fileByteData = new RPHexEditor.FileByteData(fileName);
-			rpHexEditor.ByteDataSource = this._fileByteData;
+			try
+			{
+				this._fileByteData = new RPHexEditor.FileByteData(fileName, readOnly);
+				rpHexEditor.ByteDataSource = this._fileByteData;
 
-			_fileByteData.DataChanged += new EventHandler(OnFileByteDataDataChanged);
-			_fileByteData.DataLengthChanged += new EventHandler(OnFileByteDataDataLengthChanged);
-			rpHexEditor.ReadOnly = readOnly;
+				_fileByteData.DataChanged += new EventHandler(OnFileByteDataDataChanged);
+				_fileByteData.DataLengthChanged += new EventHandler(OnFileByteDataDataLengthChanged);
+
+				bRet = true;
+			}
+			catch (Exception ex)
+			{
+				string msg = string.Format("Failed to open file '{0}'.\n{1}", fileName, ex.Message);
+				MessageBox.Show(msg, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
 
 			return bRet;
 		}
@@ -83,8 +92,8 @@ namespace RPHexEditorMDIDemo
 
 		private void RPHexEditorForm_Activated(object sender, System.EventArgs e)
 		{
-			rpHexEditor_ReadOnlyChanged(sender, e);
-			rpHexEditor_InsertModeChanged(sender, e);
+			RPHexEditor_ReadOnlyChanged(sender, e);
+			RPHexEditor_InsertModeChanged(sender, e);
 		}
 
 		private void RPHexEditorForm_Deactivate(object sender, System.EventArgs e)
@@ -122,6 +131,11 @@ namespace RPHexEditorMDIDemo
 		public void Cut()
 		{
 			rpHexEditor.Cut();
+		}
+
+		public void Undo()
+		{
+			this.rpHexEditor.Undo();
 		}
 
 		public bool IsChanged()
@@ -214,25 +228,25 @@ namespace RPHexEditorMDIDemo
 			System.Diagnostics.Debug.WriteLine("OnFileByteDataDataLengthChanged fired");
 		}
 
-		private void rpHexEditor_ReadOnlyChanged(object sender, System.EventArgs e)
+		private void RPHexEditor_ReadOnlyChanged(object sender, System.EventArgs e)
 		{
 			ToolStripStatusLabel tsl = ((MDIDemo)MdiParent).GetStatusBarControl_RW;
 			tsl.Text = rpHexEditor.ReadOnly ? "RO" : "R/W";	
 		}
 
-		private void rpHexEditor_InsertModeChanged(object sender, System.EventArgs e)
+		private void RPHexEditor_InsertModeChanged(object sender, System.EventArgs e)
 		{
 			ToolStripStatusLabel tsl = ((MDIDemo)MdiParent).GetStatusBarControl_INS;
 			tsl.Text = (rpHexEditor.InsertMode == InsertKeyMode.Insert) ? "INS" : "OVR";
 		}
 
-		private void rpHexEditor_BytePositionChanged(object sender, System.EventArgs e)
+		private void RPHexEditor_BytePositionChanged(object sender, System.EventArgs e)
 		{
 			ToolStripStatusLabel tsl = ((MDIDemo)MdiParent).GetStatusBarControl_Position;
 			tsl.Text = "Ln " + rpHexEditor.BytePositionLine.ToString() + ", Col " + rpHexEditor.BytePositionColumn.ToString();
 		}
 
-		private void rpHexEditor_SelectionChanged(object sender, System.EventArgs e)
+		private void RPHexEditor_SelectionChanged(object sender, System.EventArgs e)
 		{
 			System.Diagnostics.Debug.WriteLine("rpHexEditor_SelectionChanged fired");
 		}
@@ -282,6 +296,11 @@ namespace RPHexEditorMDIDemo
 
 			if (tsmSelectAll.Enabled != (rpHexEditor.ByteDataSource != null) && rpHexEditor.Enabled)
 				tsmSelectAll.Enabled = (rpHexEditor.ByteDataSource != null) && rpHexEditor.Enabled;
+
+			ToolStripMenuItem tsmUndo = ((MDIDemo)MdiParent).GetTSM_Undo;
+
+			if (tsmUndo.Enabled != rpHexEditor.IsUndoAvailable)
+				tsmUndo.Enabled = rpHexEditor.IsUndoAvailable;
 		}
     }
 }

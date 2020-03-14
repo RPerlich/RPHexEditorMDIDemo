@@ -391,9 +391,12 @@ namespace RPHexEditor
 					_byteData.DataLengthChanged -= new EventHandler(OnByteDataLengthChanged);
 
 				_byteData = value;
-				
+
 				if (_byteData != null)
+				{
 					_byteData.DataLengthChanged += new EventHandler(OnByteDataLengthChanged);
+					ReadOnly = value.IsReadOnly;
+				}
 
 				OnByteDataSourceChanged(EventArgs.Empty);
 
@@ -417,11 +420,17 @@ namespace RPHexEditor
 				SetInternalContextMenu();
             }
         }
-	        
-        #endregion
 
-        #region Events
-		
+		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsUndoAvailable
+		{
+			get { return ByteDataSource.IsUndoAvailable; }
+		}
+
+		#endregion
+
+		#region Events
+
 		[Description("Fired if the value of the ReadOnly property has changed.")]
 		public event EventHandler ReadOnlyChanged;
 
@@ -1985,6 +1994,15 @@ namespace RPHexEditor
 			}			
 
 			return bRet;
+		}
+
+		public void Undo()
+		{
+			if (IsUndoAvailable)
+			{
+				_byteData.Undo();
+				Invalidate();
+			}
 		}
 
 		private void SetInternalContextMenu()

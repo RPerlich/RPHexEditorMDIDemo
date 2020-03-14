@@ -33,10 +33,10 @@
 			this.rpHexEditor.ShowChangesWithColor = true;
 			this.rpHexEditor.Size = new System.Drawing.Size(477, 365);
 			this.rpHexEditor.TabIndex = 0;
-			this.rpHexEditor.ReadOnlyChanged += new System.EventHandler(this.rpHexEditor_ReadOnlyChanged);
-			this.rpHexEditor.SelectionChanged += new System.EventHandler(this.rpHexEditor_SelectionChanged);
-			this.rpHexEditor.InsertModeChanged += new System.EventHandler(this.rpHexEditor_InsertModeChanged);
-			this.rpHexEditor.BytePositionChanged += new System.EventHandler(this.rpHexEditor_BytePositionChanged);
+			this.rpHexEditor.ReadOnlyChanged += new System.EventHandler(this.RPHexEditor_ReadOnlyChanged);
+			this.rpHexEditor.SelectionChanged += new System.EventHandler(this.RPHexEditor_SelectionChanged);
+			this.rpHexEditor.InsertModeChanged += new System.EventHandler(this.RPHexEditor_InsertModeChanged);
+			this.rpHexEditor.BytePositionChanged += new System.EventHandler(this.RPHexEditor_BytePositionChanged);
 			// 
 			// RPHexEditorForm
 			// 

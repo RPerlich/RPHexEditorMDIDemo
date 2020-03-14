@@ -48,6 +48,11 @@ namespace RPHexEditorMDIDemo
 			get { return this.toolStripStatusPosition; }
 		}
 
+		public ToolStripMenuItem GetTSM_Undo
+		{
+			get { return this.undoToolStripMenuItem; }
+		}
+
 		public ToolStripMenuItem GetTSM_Copy
 		{
 			get { return this.copyToolStripMenuItem; }
@@ -104,6 +109,7 @@ namespace RPHexEditorMDIDemo
 				RPHexEditorForm childForm = new RPHexEditorForm();
 				childForm.MdiParent = this;
 				childForm.Text = openFileDialog.FileName;
+				// TODO: Check result
 				childForm.LoadFile(openFileDialog.FileName, openFileDialog.ReadOnlyChecked);
 				childForm.Show();
 			}
@@ -130,6 +136,21 @@ namespace RPHexEditorMDIDemo
 		private void ExitToolsStripMenuItem_Click(object sender, EventArgs e)
 		{
 			this.Close();
+		}
+
+		private void undoToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
+
+			if (child != null)
+			{
+				child.Undo();
+			}
+		}
+
+		private void redoToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			throw new NotImplementedException();
 		}
 
 		private void CutToolStripMenuItem_Click(object sender, EventArgs e)
@@ -241,5 +262,6 @@ namespace RPHexEditorMDIDemo
 			this.saveAsToolStripMenuItem.Enabled = MdiChildren.Length > 0;
 			this.saveToolStripButton.Enabled = this.saveAsToolStripMenuItem.Enabled;
 		}
+
 	}
 }

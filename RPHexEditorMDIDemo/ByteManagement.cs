@@ -172,12 +172,15 @@ namespace RPHexEditor
 	{
 		byte ReadByte(long index);
 		byte ReadByte(long index, out bool isChanged);
-		void WriteByte(long index, byte value);
-		void InsertBytes(long index, byte[] value);
-		void DeleteBytes(long index, long length);
+		void WriteByte(long index, byte value, bool track_Change = true);
+		void InsertBytes(long index, byte[] value, bool track_Change = true);
+		void DeleteBytes(long index, long length, bool track_Change = true);
 		long Length { get; }
+		bool IsReadOnly { get; }
 		bool IsChanged();
 		void CommitChanges();
+		void Undo();
+		bool IsUndoAvailable { get; }
 
 		event EventHandler DataChanged;
 		event EventHandler DataLengthChanged;
@@ -190,6 +193,7 @@ namespace RPHexEditor
 		long _fileDataLength = 0;
 		Stream _fileDataStream = null;
 		BytePartList _bytePartList = null;
+		UndoList _undoList = null;
 		const int BLOCK_SIZE = 4096;
 
 		public FileByteData()
@@ -207,9 +211,19 @@ namespace RPHexEditor
 			_fileName = fileName;
 			_fileDataIsReadOnly = readOnly;
 
-			_fileDataStream = File.Open(fileName, FileMode.Open, 
-								readOnly ? FileAccess.Read : FileAccess.ReadWrite,
-								readOnly ? FileShare.ReadWrite : FileShare.Read);
+			try
+			{
+				_fileDataStream = File.Open(fileName, FileMode.Open,
+									_fileDataIsReadOnly ? FileAccess.Read : FileAccess.ReadWrite,
+									_fileDataIsReadOnly ? FileShare.ReadWrite : FileShare.Read);
+			}
+			catch (IOException)
+			{
+				_fileDataIsReadOnly = true;
+				_fileDataStream = File.Open(fileName, FileMode.Open,
+									_fileDataIsReadOnly ? FileAccess.Read : FileAccess.ReadWrite,
+									_fileDataIsReadOnly ? FileShare.ReadWrite : FileShare.Read);
+			}
 
 			InitFileByteData();
 		}
@@ -249,6 +263,7 @@ namespace RPHexEditor
 			_bytePartList = new BytePartList();
 			_bytePartList.AddFirst(new FileBytePart(0, _fileDataStream.Length));
 			_fileDataLength = _fileDataStream.Length;
+			_undoList = new UndoList();
 		}
 
 		public string FileName
@@ -264,6 +279,11 @@ namespace RPHexEditor
 		public long Length
 		{
 			get { return _fileDataLength; }
+		}
+
+		public bool IsReadOnly
+		{
+			get { return _fileDataIsReadOnly; }
 		}
 
 		public bool IsChanged()
@@ -492,9 +512,13 @@ namespace RPHexEditor
 				throw new ArgumentNullException("index", "FileByteData.ReadByte: The internal BytePartList is corrupt.");
 		}
 
-		public void WriteByte(long index, byte value)
+		public void WriteByte(long index, byte value, bool track_Change = true)
 		{
 			long startIndex = 0;
+			byte oldValue = ReadByte(index);
+
+			if (track_Change)
+				_undoList.Add(new UndoAction(new byte[] { oldValue }, index, mod_type.mod_replace));
 
 			BytePart bytePart = BytePartGetInfo(index, out startIndex);
 
@@ -583,10 +607,13 @@ namespace RPHexEditor
 				throw new ArgumentNullException("index", "FileByteData.WriteByte: The internal BytePartList is corrupt.");
 		}
 
-		public void InsertBytes(long index, byte[] value)
+		public void InsertBytes(long index, byte[] value, bool track_Change = true)
 		{
 			long startIndex = 0;
-			
+
+			if (track_Change)
+				_undoList.Add(new UndoAction(value, index, mod_type.mod_insert));
+
 			BytePart bytePart = BytePartGetInfo(index, out startIndex);
 
 			FileBytePart fileBytePart = bytePart as FileBytePart;
@@ -658,10 +685,17 @@ namespace RPHexEditor
 				throw new ArgumentNullException("index", "FileByteData.InsertBytes: The internal BytePartList is corrupt.");
 		}
 
-		public void DeleteBytes(long index, long length)
+		public void DeleteBytes(long index, long length, bool track_Change = true)
 		{
 			long startIndex = 0;
 			long tempLength = length;
+			Byte[] oldData = new Byte[length];
+
+			for (long l = 0; l < length; l++)
+				oldData[l] = ReadByte(l + index);
+
+			if (track_Change)
+				_undoList.Add(new UndoAction(oldData, index, mod_type.mod_delete));
 
 			BytePart bytePart = BytePartGetInfo(index, out startIndex);
 
@@ -670,8 +704,10 @@ namespace RPHexEditor
 				LinkedListNode<BytePart> bp = _bytePartList.Find(bytePart);
 				BytePart nextBytePart = (bp.Next != null) ? bp.Next.Value : null;
 
-				long byteCount = Math.Min(tempLength, bytePart.Length - index - startIndex);
-				
+				long byteCount = Math.Min(tempLength, bytePart.Length - (index - startIndex));
+
+				System.Diagnostics.Debug.Assert(byteCount > 0);
+
 				bytePart.RemoveBytes(index - startIndex, byteCount, _bytePartList);
 
 				if (bytePart.Length == 0)
@@ -691,10 +727,46 @@ namespace RPHexEditor
 			OnDataLengthChanged(EventArgs.Empty);
 			OnDataChanged(EventArgs.Empty);
 		}
+
+		public void Undo()
+		{
+			if (_undoList.Count > 0)
+			{
+				UndoAction ua = _undoList[_undoList.Count - 1];
+				_undoList.RemoveAt(_undoList.Count - 1);
+
+				switch (ua.GetModType())
+				{
+					case mod_type.mod_delete:
+						{
+							InsertBytes(ua.GetAddress(), ua.GetData(), false);
+							break;
+						}
+					case mod_type.mod_insert:
+						{
+							DeleteBytes(ua.GetAddress(), ua.GetData().Length, false);
+							break;
+						}
+					case mod_type.mod_replace:
+						{
+							WriteByte(ua.GetAddress(), ua.GetData()[0], false);
+							break;
+						}
+				}
+			}
+			else
+				System.Diagnostics.Debug.WriteLine("FileByteData.Undo: Undo list is empty.");
+		}
+
+		public bool IsUndoAvailable
+		{
+			get { return (_undoList.Count > 0) && !IsReadOnly; }
+		}
 	}
 
 	public class MemoryByteData : IByteData
 	{
+		bool _memoryDataIsReadOnly = false;
 		bool _hasChanges;
 		List<byte> _bytes;
 
@@ -715,6 +787,11 @@ namespace RPHexEditor
 		public long Length
 		{
 			get { return _bytes.Count; }
+		}
+
+		public bool IsReadOnly
+		{
+			get { return _memoryDataIsReadOnly; }
 		}
 
 		public bool IsChanged()
@@ -755,13 +832,13 @@ namespace RPHexEditor
 			return _bytes[(int)index];
 		}
 
-		public void WriteByte(long index, byte value)
+		public void WriteByte(long index, byte value, bool track_Change = true)
 		{
 			_bytes[(int)index] = value;
 			OnDataChanged(EventArgs.Empty);
 		}
 
-		public void InsertBytes(long index, byte[] value)
+		public void InsertBytes(long index, byte[] value, bool track_Change = true)
 		{
 			_bytes.InsertRange((int)index, value);
 
@@ -769,7 +846,7 @@ namespace RPHexEditor
 			OnDataChanged(EventArgs.Empty);
 		}
 
-		public void DeleteBytes(long index, long length)
+		public void DeleteBytes(long index, long length, bool track_Change = true)
 		{
 			int internal_index = (int)Math.Max(0, index);
 			int internal_length = (int)Math.Min((int)Length, length);
@@ -779,5 +856,53 @@ namespace RPHexEditor
 			OnDataChanged(EventArgs.Empty);
 		}
 
+		public void Undo()
+		{
+			throw new NotImplementedException();
+		}
+
+		public bool IsUndoAvailable
+		{
+			get { return false; }
+		}
 	}
+
+	enum mod_type
+	{
+		mod_insert = 0,
+		mod_replace,
+		mod_delete
+	};
+
+	internal sealed class UndoAction
+	{
+		mod_type _modType;
+		long _address;
+		Byte[] _data;
+
+		public UndoAction(Byte[] data, long address, mod_type modType)
+		{
+			_address = address;
+			_data = data.Clone() as byte[];
+			_modType = modType;
+		}
+
+		public byte[] GetData()
+		{
+			return _data;
+		}
+
+		public long GetAddress()
+		{
+			return _address;
+		}
+
+		public mod_type GetModType()
+		{
+			return _modType;
+		}
+	}
+
+	internal class UndoList : List<UndoAction>
+	{ }
 }
