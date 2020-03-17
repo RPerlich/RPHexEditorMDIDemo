@@ -1,7 +1,6 @@
 ﻿using System;
-using System.IO;
-using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 
 namespace RPHexEditor
 {
@@ -16,7 +15,7 @@ namespace RPHexEditor
 
 	internal sealed class MemoryBytePart : BytePart
     {
-        byte[] _bytes;
+        private byte[] _bytes;
 
 		public MemoryBytePart(byte value)
         {
@@ -85,8 +84,8 @@ namespace RPHexEditor
 
 	internal sealed class FileBytePart : BytePart
 	{
-		long _filePartLength;
-		long _filePartIndex;
+		private long _filePartLength;
+		private long _filePartIndex;
 
 		public FileBytePart(long index, long length)
 		{
@@ -187,10 +186,7 @@ namespace RPHexEditor
 	}
 
 	public sealed class FileByteData : IByteData, IDisposable
-	{		
-		string _fileName = string.Empty;
-		bool _fileDataIsReadOnly = false;
-		long _fileDataLength = 0;
+	{
 		Stream _fileDataStream = null;
 		BytePartList _bytePartList = null;
 		UndoList _undoList = null;
@@ -198,31 +194,31 @@ namespace RPHexEditor
 
 		public FileByteData()
 		{
-			_fileName = Path.GetTempFileName();
-			_fileDataIsReadOnly = false;
+			FileName = Path.GetTempFileName();
+			ReadOnly = false;
 
-			_fileDataStream = new FileStream(_fileName, FileMode.Open, FileAccess.ReadWrite);
+			_fileDataStream = new FileStream(FileName, FileMode.Open, FileAccess.ReadWrite);
 
 			InitFileByteData();
 		}
 
 		public FileByteData(string fileName, bool readOnly = false)
 		{
-			_fileName = fileName;
-			_fileDataIsReadOnly = readOnly;
+			FileName = fileName;
+			ReadOnly = readOnly;
 
 			try
 			{
 				_fileDataStream = File.Open(fileName, FileMode.Open,
-									_fileDataIsReadOnly ? FileAccess.Read : FileAccess.ReadWrite,
-									_fileDataIsReadOnly ? FileShare.ReadWrite : FileShare.Read);
+									ReadOnly ? FileAccess.Read : FileAccess.ReadWrite,
+									ReadOnly ? FileShare.ReadWrite : FileShare.Read);
 			}
 			catch (IOException)
 			{
-				_fileDataIsReadOnly = true;
+				ReadOnly = true;
 				_fileDataStream = File.Open(fileName, FileMode.Open,
-									_fileDataIsReadOnly ? FileAccess.Read : FileAccess.ReadWrite,
-									_fileDataIsReadOnly ? FileShare.ReadWrite : FileShare.Read);
+									ReadOnly ? FileAccess.Read : FileAccess.ReadWrite,
+									ReadOnly ? FileShare.ReadWrite : FileShare.Read);
 			}
 
 			InitFileByteData();
@@ -237,7 +233,7 @@ namespace RPHexEditor
 				throw new ArgumentException("stream", "FileByteData.FileByteData: The stream does not support search operations.");
 
 			_fileDataStream = stream;
-			_fileDataIsReadOnly = !stream.CanWrite;
+			ReadOnly = !stream.CanWrite;
 			
 			InitFileByteData();
 		}
@@ -262,36 +258,27 @@ namespace RPHexEditor
 		{
 			_bytePartList = new BytePartList();
 			_bytePartList.AddFirst(new FileBytePart(0, _fileDataStream.Length));
-			_fileDataLength = _fileDataStream.Length;
+			Length = _fileDataStream.Length;
 			_undoList = new UndoList();
 		}
 
-		public string FileName
-		{
-			get { return _fileName; }
-		}
+		public string FileName { get; } = string.Empty;
 
-		public bool ReadOnly
-		{
-			get { return _fileDataIsReadOnly; }
-		}
+		public bool ReadOnly { get; } = false;
 
-		public long Length
-		{
-			get { return _fileDataLength; }
-		}
+		public long Length { get; private set; } = 0;
 
 		public bool IsReadOnly
 		{
-			get { return _fileDataIsReadOnly; }
+			get { return ReadOnly; }
 		}
 
 		public bool IsChanged()
 		{
-			if (_fileDataIsReadOnly)
+			if (ReadOnly)
 				return false;
 
-			if (_fileDataLength != _fileDataStream.Length)
+			if (Length != _fileDataStream.Length)
 				return true;
 
 			long index = 0;
@@ -311,11 +298,11 @@ namespace RPHexEditor
 
 		public void CommitChanges()
 		{
-			if (_fileDataIsReadOnly)
+			if (ReadOnly)
 				throw new OperationCanceledException("FileByteData.CommitChanges: The data cannot be saved when the file is in read only mode.");
 			
-			if (_fileDataLength > _fileDataStream.Length)
-				_fileDataStream.SetLength(_fileDataLength);
+			if (Length > _fileDataStream.Length)
+				_fileDataStream.SetLength(Length);
 
 			long index = 0;
 
@@ -445,7 +432,7 @@ namespace RPHexEditor
 			BytePart bytePart = null;
 			startIndex = 0;
 
-			if (index < 0 || index > _fileDataLength)
+			if (index < 0 || index > Length)
 				throw new ArgumentOutOfRangeException("index", "FileByteData.BytePartGetInfo: The parameter is outside the file limits.");
 
 			for (LinkedListNode<BytePart> bp = _bytePartList.First; bp != null; bp = bp.Next)
@@ -609,12 +596,10 @@ namespace RPHexEditor
 
 		public void InsertBytes(long index, byte[] value, bool track_Change = true)
 		{
-			long startIndex = 0;
-
 			if (track_Change)
 				_undoList.Add(new UndoAction(value, index, mod_type.mod_insert));
 
-			BytePart bytePart = BytePartGetInfo(index, out startIndex);
+			BytePart bytePart = BytePartGetInfo(index, out long startIndex);
 
 			FileBytePart fileBytePart = bytePart as FileBytePart;
 			MemoryBytePart memoryBytePart = bytePart as MemoryBytePart;
@@ -623,7 +608,7 @@ namespace RPHexEditor
 			{
 				memoryBytePart.InsertBytes(index - startIndex, value);
 
-				_fileDataLength += value.Length;
+				Length += value.Length;
 				OnDataLengthChanged(EventArgs.Empty);
 				OnDataChanged(EventArgs.Empty);
 
@@ -638,7 +623,7 @@ namespace RPHexEditor
 				{
 					prevMemoryBytePart.InsertBytes(prevMemoryBytePart.Length, value);
 
-					_fileDataLength += value.Length;
+					Length += value.Length;
 					OnDataLengthChanged(EventArgs.Empty);
 					OnDataChanged(EventArgs.Empty);
 
@@ -677,7 +662,7 @@ namespace RPHexEditor
 					_bytePartList.AddAfter(bp2, newNextFileBytePart);
 				}
 
-				_fileDataLength += value.Length;
+				Length += value.Length;
 				OnDataLengthChanged(EventArgs.Empty);
 				OnDataChanged(EventArgs.Empty);
 			}
@@ -687,7 +672,6 @@ namespace RPHexEditor
 
 		public void DeleteBytes(long index, long length, bool track_Change = true)
 		{
-			long startIndex = 0;
 			long tempLength = length;
 			Byte[] oldData = new Byte[length];
 
@@ -697,7 +681,7 @@ namespace RPHexEditor
 			if (track_Change)
 				_undoList.Add(new UndoAction(oldData, index, mod_type.mod_delete));
 
-			BytePart bytePart = BytePartGetInfo(index, out startIndex);
+			BytePart bytePart = BytePartGetInfo(index, out long startIndex);
 
 			while ((tempLength > 0) && (bytePart != null))
 			{
@@ -723,7 +707,7 @@ namespace RPHexEditor
 				bytePart = (tempLength > 0) ? nextBytePart : null;
 			}
 
-			_fileDataLength -= length;
+			Length -= length;
 			OnDataLengthChanged(EventArgs.Empty);
 			OnDataChanged(EventArgs.Empty);
 		}
@@ -877,10 +861,10 @@ namespace RPHexEditor
 	internal sealed class UndoAction
 	{
 		mod_type _modType;
-		long _address;
-		Byte[] _data;
+		readonly long _address;
+		readonly byte[] _data;
 
-		public UndoAction(Byte[] data, long address, mod_type modType)
+		public UndoAction(byte[] data, long address, mod_type modType)
 		{
 			_address = address;
 			_data = data.Clone() as byte[];
@@ -905,4 +889,203 @@ namespace RPHexEditor
 
 	internal class UndoList : List<UndoAction>
 	{ }
+
+	public enum SearchDirection
+	{
+		Direction_Down = 0,
+		Direction_Up
+	};
+
+	public class FindByteDataEventArgs : EventArgs
+	{
+		public long FoundPosition { get; set; }
+	}
+
+	public sealed class FindByteDataOption
+	{
+		System.Text.ASCIIEncoding _enc = null;
+		byte[] _searchBytes = null;
+		string _seachText = string.Empty;
+		long _searchStartIndex = 0;
+
+		public FindByteDataOption()
+		{
+			_enc = new System.Text.ASCIIEncoding();
+		}
+
+		public byte[] SearchBytes
+		{
+			get { return _searchBytes; }
+			set
+			{
+				if (value != null)
+				{
+					_searchBytes = value;
+					SearchText = new string(_enc.GetChars(_searchBytes));
+				}
+			}
+		}
+
+		public string SearchText
+		{
+			get { return _seachText; }
+			set
+			{
+				if (value != null && value.Length > 0)
+				{
+					_seachText = value;
+					_searchBytes = _enc.GetBytes(_seachText);
+				}
+			}
+		}
+
+		public SearchDirection SearchDirection { get; set; } = SearchDirection.Direction_Down;
+
+		public long SearchStartIndex
+		{
+			get { return _searchStartIndex; }
+			set
+			{
+				if (value > 0)
+					_searchStartIndex = value;
+			}
+		}
+	}
+
+	internal class FindByteData
+	{
+		byte[] _buffer = null;
+		IByteData _byteData = null;
+		long _startIndex = 0;
+
+		public FindByteData(IByteData byteData)
+		{
+			_buffer = new byte[4096];
+			_byteData = byteData ?? throw new ArgumentNullException("byteData", "FindByteData.FindByteData: The parameter cannot be NULL.");
+		}
+
+		public void Find(FindByteDataOption findByteDataOption)
+		{
+			_startIndex = findByteDataOption.SearchStartIndex;
+
+			FindByteDataEventArgs args = new FindByteDataEventArgs();
+
+			if (findByteDataOption.SearchBytes == null)
+			{
+				args.FoundPosition = -1;
+				OnFindPositionFound(args);
+				return;
+			}
+
+			if (findByteDataOption.SearchDirection == SearchDirection.Direction_Up)
+				args.FoundPosition = FindUp(findByteDataOption);
+			else
+				args.FoundPosition = FindDown(findByteDataOption);
+
+			OnFindPositionFound(args);
+		}
+
+		public long FindDown(FindByteDataOption findByteDataOption)
+		{
+			while (_startIndex < _byteData.Length)
+			{
+				FillBuffer(_buffer, _startIndex);
+
+				int i = FindBuffer(_buffer, findByteDataOption.SearchBytes);
+
+				if (i >= 0)
+					return _startIndex + i;
+				else
+					_startIndex += _buffer.Length - findByteDataOption.SearchBytes.Length + 1;
+			}
+
+			return -1;
+		}
+
+		public long FindUp(FindByteDataOption findByteDataOption)
+		{
+			while (_startIndex > 0)
+			{
+				FillBufferUp(_buffer, _startIndex);
+
+				int i = FindBuffer(_buffer, findByteDataOption.SearchBytes);
+
+				if (i >= 0)
+					return _startIndex - (_buffer.Length - i) + 1;
+				else
+					_startIndex -= _buffer.Length - findByteDataOption.SearchBytes.Length + 1;
+			}
+
+			return -1;
+		}
+
+		private void FillBuffer(byte[] buffer, long idx)
+		{
+			Array.Clear(buffer, 0, buffer.Length);
+
+			long _maxBufferToRead = buffer.Length;
+
+			if (_byteData.Length < buffer.Length + idx)
+				_maxBufferToRead = _byteData.Length - idx;
+
+			for (long i = 0; i < _maxBufferToRead; i++)
+				buffer[i] = _byteData.ReadByte(i + idx);
+
+			System.Diagnostics.Debug.WriteLine("Search: Fill buffer from {0:x} to {1:x}. StreamSize: {2:x}", idx, (idx + _maxBufferToRead - 1), _byteData.Length);
+		}
+
+		private void FillBufferUp(byte[] buffer, long idx)
+		{
+			Array.Clear(buffer, 0, buffer.Length);
+
+			long _maxBufferToRead = buffer.Length;
+
+			if (idx - buffer.Length < 0)
+				_maxBufferToRead = idx + 1;
+
+			for (long i = 0; i < _maxBufferToRead; i++)
+				buffer[_maxBufferToRead - 1 - i] = _byteData.ReadByte(idx - i);
+
+			System.Diagnostics.Debug.WriteLine("Search: Fill buffer from {0:x} to {1:x}. StreamSize: {2:x}", idx, (idx + 1 - _maxBufferToRead), _byteData.Length);
+		}
+
+		private int FindBuffer(byte[] buffer, byte[] searchForBytes)
+		{
+			if (buffer == null || searchForBytes == null ||
+				buffer.Length == 0 || searchForBytes.Length == 0 ||
+				searchForBytes.Length > buffer.Length)
+				return -1;
+
+			var list = new List<int>();
+
+			for (int i = 0; i < buffer.Length; i++)
+			{
+				if (!IsMatch(buffer, i, searchForBytes))
+					continue;
+
+				return i;
+			}
+
+			return -1;
+		}
+
+		private bool IsMatch(byte[] buffer, int idx, byte[] searchForBytes)
+		{
+			if (searchForBytes.Length > (buffer.Length - idx))
+				return false;
+
+			for (int i = 0; i < searchForBytes.Length; i++)
+				if (buffer[idx + i] != searchForBytes[i])
+					return false;
+
+			return true;
+		}
+
+		protected virtual void OnFindPositionFound(FindByteDataEventArgs e)
+		{
+			PositionFound?.Invoke(this, e);
+		}
+
+		public event EventHandler<FindByteDataEventArgs> PositionFound;
+	}
 }

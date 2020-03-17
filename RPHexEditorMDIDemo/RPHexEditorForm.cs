@@ -1,27 +1,38 @@
 ﻿using System;
 using System.IO;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace RPHexEditorMDIDemo
 {
-    public partial class RPHexEditorForm : Form
-    {		
+	public partial class RPHexEditorForm : Form
+	{
 		private string _fileFilter = "All Files (*.*)|*.*|Bin Files (*.bin)|*.bin|Text Files (*.txt)|*.txt";
 		private RPHexEditor.FileByteData _fileByteData;
 		private RPHexEditor.MemoryByteData _memoryByteData;
-		
+		private RPQuickFind _quickFindWnd;
+
 		private Timer _timer = null;
 
 		public RPHexEditorForm()
-        {
-            InitializeComponent();
-			this.Size = new System.Drawing.Size(640, 480);
-			
+		{
+			InitializeComponent();
+			Size = new System.Drawing.Size(640, 480);
+
+			_quickFindWnd = new RPQuickFind();
+			_quickFindWnd.TopLevel = false;
+			_quickFindWnd.TopMost = true;
+			_quickFindWnd.Parent = this;
+			_quickFindWnd.Left = ClientRectangle.Width - _quickFindWnd.Width - 20; // ? no scrollbar width available, use default 20px
+			_quickFindWnd.Top = rpHexEditor.Margin.Top;
+			_quickFindWnd.FindNext += new EventHandler(OnFindNext);
+			Controls.Add(_quickFindWnd);
+
 			_timer = new Timer();
 			_timer.Tick += new EventHandler(OnClientStateUpdate);
 			_timer.Interval = 500;
 			_timer.Start();
-        }
+		}
 
 		protected override void Dispose(bool disposing)
 		{
@@ -75,7 +86,7 @@ namespace RPHexEditorMDIDemo
 
 			return bRet;
 		}
-		
+
 		public bool NewFile()
 		{
 			bool bRet = false;
@@ -135,8 +146,39 @@ namespace RPHexEditorMDIDemo
 
 		public void Undo()
 		{
-			this.rpHexEditor.Undo();
+			rpHexEditor.Undo();
 		}
+
+		public void Find()
+		{
+			if (!_quickFindWnd.Visible)
+			{				
+				_quickFindWnd.Show();
+				RPHexEditorForm_ResizeEnd(this, EventArgs.Empty);
+			}
+
+			_quickFindWnd.BringToFront();
+		}
+
+		private void OnFindNext(object sender, EventArgs e)
+		{
+			if (IsSearching)
+			{
+				System.Media.SystemSounds.Beep.Play();
+				return;
+			}
+
+			IsSearching = true;
+
+			RPHexEditor.FindByteDataOption fbdo = rpHexEditor.FindDataOption;
+			fbdo.SearchText = _quickFindWnd.SearchText; ;
+			fbdo.SearchDirection = RPHexEditor.SearchDirection.Direction_Down;
+			fbdo.SearchStartIndex = rpHexEditor.BytePosition;
+
+			rpHexEditor.Find();
+		}
+
+		public bool IsSearching { get; set; }
 
 		public bool IsChanged()
 		{
@@ -170,7 +212,7 @@ namespace RPHexEditorMDIDemo
 				rpHexEditor.ByteDataSource = _fileByteData;
 				this.Text = saveFileDialog.FileName;
 			}
-			
+
 			rpHexEditor.CommitChanges();
 		}
 
@@ -215,7 +257,7 @@ namespace RPHexEditorMDIDemo
 
 		public void SetInsertMode(InsertKeyMode mode)
 		{
-			this.rpHexEditor.InsertMode = mode;
+			rpHexEditor.InsertMode = mode;
 		}
 
 		protected void OnFileByteDataDataChanged(object sender, EventArgs e)
@@ -231,7 +273,7 @@ namespace RPHexEditorMDIDemo
 		private void RPHexEditor_ReadOnlyChanged(object sender, System.EventArgs e)
 		{
 			ToolStripStatusLabel tsl = ((MDIDemo)MdiParent).GetStatusBarControl_RW;
-			tsl.Text = rpHexEditor.ReadOnly ? "RO" : "R/W";	
+			tsl.Text = rpHexEditor.ReadOnly ? "RO" : "R/W";
 		}
 
 		private void RPHexEditor_InsertModeChanged(object sender, System.EventArgs e)
@@ -251,6 +293,21 @@ namespace RPHexEditorMDIDemo
 			System.Diagnostics.Debug.WriteLine("rpHexEditor_SelectionChanged fired");
 		}
 
+		private void RPHexEditor_FindPositionFound(object sender, EventArgs e)
+		{
+			RPHexEditor.FindByteDataEventArgs e1 = e as RPHexEditor.FindByteDataEventArgs;
+			IsSearching = false;
+
+			if (e1.FoundPosition == -1)
+				MessageBox.Show(
+					"Find reached the end point of the search or the specified text was not found.",
+					"Information", 
+					MessageBoxButtons.OK, 
+					MessageBoxIcon.Information);
+			
+			System.Diagnostics.Debug.WriteLine("Find: Found position at {0:X}", e1.FoundPosition);
+		}
+
 		private void OnClientStateUpdate(Object myObject, EventArgs myEventArgs)
 		{
 			if (MdiParent == null)
@@ -258,16 +315,16 @@ namespace RPHexEditorMDIDemo
 
 			ToolStripMenuItem tsmCopy = ((MDIDemo)MdiParent).GetTSM_Copy;
 			ToolStripButton tsbCopy = ((MDIDemo)MdiParent).GetTSB_Copy;
-						
-			if (tsmCopy.Enabled != rpHexEditor.IsCmdCopyAvailable )
-				{
+
+			if (tsmCopy.Enabled != rpHexEditor.IsCmdCopyAvailable)
+			{
 				tsmCopy.Enabled = rpHexEditor.IsCmdCopyAvailable;
 				tsbCopy.Enabled = tsmCopy.Enabled;
 			}
 
 			ToolStripMenuItem tsmCut = ((MDIDemo)MdiParent).GetTSM_Cut;
 			ToolStripButton tsbCut = ((MDIDemo)MdiParent).GetTSB_Cut;
-			
+
 			if (tsmCut.Enabled != rpHexEditor.IsCmdCutAvailable)
 			{
 				tsmCut.Enabled = rpHexEditor.IsCmdCutAvailable;
@@ -297,5 +354,24 @@ namespace RPHexEditorMDIDemo
 				tsbUndo.Enabled = tsmUndo.Enabled;
 			}
 		}
-    }
+
+		private void RPHexEditorForm_ResizeEnd(object sender, EventArgs e)
+		{
+			if (_quickFindWnd != null && _quickFindWnd.Visible)
+			{
+				//looks like a MS Bug, need to use native methods
+				NativeMethods.MoveWindow(
+					_quickFindWnd.Handle, 
+					ClientRectangle.Width - _quickFindWnd.Width - 20, 
+					_quickFindWnd.Top, _quickFindWnd.Width, 
+					_quickFindWnd.Height, true);
+			}
+		}
+	}
+
+	internal static class NativeMethods
+	{
+		[DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall, ExactSpelling = true, SetLastError = true)]
+		internal static extern void MoveWindow(IntPtr hwnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+	}
 }

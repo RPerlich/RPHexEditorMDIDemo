@@ -13,17 +13,17 @@ namespace RPHexEditor
 		public RPHexEditorUC()
 		{
 			vScrollBar = new VScrollBar();
-			this.Controls.Add(this.vScrollBar);
+			Controls.Add(this.vScrollBar);
 			hScrollBar = new HScrollBar();
-			this.Controls.Add(this.hScrollBar);
+			Controls.Add(this.hScrollBar);
 			
 			vScrollBar.Scroll += new ScrollEventHandler(VScrollBar_Scroll);
 			hScrollBar.Scroll += new ScrollEventHandler(HScrollBar_Scroll);
 
 			InitializeComponent();
 
-			this.Font = _font;
-			this.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			Font = _font;
+			BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 
 			SetStyle(ControlStyles.AllPaintingInWmPaint, true);
 			SetStyle(ControlStyles.UserPaint, true);
@@ -42,6 +42,8 @@ namespace RPHexEditor
 			_stringFormat.FormatFlags = StringFormatFlags.MeasureTrailingSpaces;
 
 			_currEncoder = _encoderANSI;
+
+			FindDataOption = new FindByteDataOption();
 		}
 
 		private VScrollBar vScrollBar;
@@ -50,68 +52,67 @@ namespace RPHexEditor
 		private Timer _thumbTrackVTimer = null;
 		private Timer _thumbTrackHTimer = null;
 
-		ClickAreas _clickArea = ClickAreas.AREA_BYTES;
-		EnterMode _enterMode = EnterMode.BYTES;
-		InsertKeyMode _insertMode = InsertKeyMode.Overwrite;
+		private ClickAreas _clickArea = ClickAreas.AREA_BYTES;
+		private EnterMode _enterMode = EnterMode.BYTES;
+		private InsertKeyMode _insertMode = InsertKeyMode.Overwrite;
 
-		bool _readOnly = false;
-		bool _autoBytesPerLine = false;
-		bool _drawCharacters = true;
-		bool _drawAddressLine = true;
-		bool _caretVisible = false;
-		bool _showChangesWithColor = false;
-		string _lineAddressFormat = "X8";
-		string _lineByteFormat = "X2";
-		int _iHexMaxHBytes;
-		int _iHexMaxVBytes;
-		int _iHexMaxBytes;
-		int _bytesPerLine = 16;
-		long _scrollVmin;
-		long _scrollVmax;
-		long _scrollVpos;
-		long _scrollHmin;
-		long _scrollHmax;
-		long _scrollHpos;
+		private bool _readOnly = false;
+		private bool _autoBytesPerLine = false;
+		private bool _drawCharacters = true;
+		private bool _drawAddressLine = true;
+		private bool _caretVisible = false;
+		private bool _showChangesWithColor = false;
+		private string _lineAddressFormat = "X8";
+		private string _lineByteFormat = "X2";
+		private int _iHexMaxHBytes;
+		private int _iHexMaxVBytes;
+		private int _iHexMaxBytes;
+		private int _bytesPerLine = 16;
+		private long _scrollVmin;
+		private long _scrollVmax;
+		private long _scrollVpos;
+		private long _scrollHmin;
+		private long _scrollHmax;
+		private long _scrollHpos;
 
-		Font _font = new Font("Consolas", 10);
-		StringFormat _stringFormat;
-		Rectangle _rectContent;
-		Rectangle _recAddressLine;
-		Rectangle _recHexLine;
-		Rectangle _recCharLine;
-		SizeF _charSize;
-		Color _addressLineColor = Color.FloralWhite;
-		Color _hexLineColor = Color.AliceBlue;
-		Color _charLineColor = SystemColors.Control;
-		Color _selectionBackColor = SystemColors.Highlight;
-		Color _selectionForeColor = SystemColors.HighlightText;
-		Color _changedForColor = Color.IndianRed;
-		IByteData _byteData;
+		private Font _font = new Font("Consolas", 10);
+		private StringFormat _stringFormat;
+		private Rectangle _rectContent;
+		private Rectangle _recAddressLine;
+		private Rectangle _recHexLine;
+		private Rectangle _recCharLine;
+		private SizeF _charSize;
+		private Color _addressLineColor = Color.FloralWhite;
+		private Color _hexLineColor = Color.AliceBlue;
+		private Color _charLineColor = SystemColors.Control;
+		private Color _selectionBackColor = SystemColors.Highlight;
+		private Color _selectionForeColor = SystemColors.HighlightText;
+		private Color _changedForColor = Color.IndianRed;
+		private IByteData _byteData = null;
+		private FindByteData _findData = null;
 
-		long _bytePos = 0;
-        bool _isNibble = false;
-		bool _lMouseDown = false;
-        long _startByte = 0;
-        long _endByte = 0;
-		bool _isShiftActive = false;
-		long _startSelection = -1;
-		long _endSelection = -1;        		        
-		long _thumbTrackVPosition = 0;
-		long _thumbTrackHPosition = 0;
-		const int ThumbTrackMS = 50;
-        int _lastThumbTrackMS = 0;
-		
-		Encoder _encoding = Encoder.ANSI;
-		IRPHexEditorCharEncoder _encoderANSI = new RPHexEditorCharANSIEncoder();
-		IRPHexEditorCharEncoder _encoderEBCDIC = new RPHexEditorCharEBCDICEncoder();
-		IRPHexEditorCharEncoder _currEncoder;
+		private long _bytePos = 0;
+		private bool _isNibble = false;
+		private bool _lMouseDown = false;
+		private long _startByte = 0;
+		private long _endByte = 0;
+		private bool _isShiftActive = false;
+		private long _thumbTrackVPosition = 0;
+		private long _thumbTrackHPosition = 0;
+		private const int ThumbTrackMS = 50;
+		private int _lastThumbTrackMS = 0;
 
-		ContextMenuStrip _internalContextMenu = null;
-		ToolStripMenuItem _internalCutMenuItem = null;
-		ToolStripMenuItem _internalCopyMenuItem = null;
-		ToolStripMenuItem _internalPasteMenuItem = null;
-		ToolStripSeparator _internalSeparatorMenuItem_1 = null;
-		ToolStripMenuItem _internalSelectAllMenuItem = null;
+		private Encoder _encoding = Encoder.ANSI;
+		private IRPHexEditorCharEncoder _encoderANSI = new RPHexEditorCharANSIEncoder();
+		private IRPHexEditorCharEncoder _encoderEBCDIC = new RPHexEditorCharEBCDICEncoder();
+		private IRPHexEditorCharEncoder _currEncoder;
+
+		private ContextMenuStrip _internalContextMenu = null;
+		private ToolStripMenuItem _internalCutMenuItem = null;
+		private ToolStripMenuItem _internalCopyMenuItem = null;
+		private ToolStripMenuItem _internalPasteMenuItem = null;
+		private ToolStripSeparator _internalSeparatorMenuItem_1 = null;
+		private ToolStripMenuItem _internalSelectAllMenuItem = null;
 
 		#region Overridden properties
 
@@ -341,16 +342,10 @@ namespace RPHexEditor
 		}
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-		public long SelectionStart
-		{
-			get { return _startSelection; }			
-		}
+		public long SelectionStart { get; private set; } = -1;
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-		public long SelectionEnd
-		{
-			get { return _endSelection; }
-		}
+		public long SelectionEnd { get; private set; } = -1;
 
 		[DefaultValue(Encoder.ANSI), Category("HexEditor"), Description("Get or set the encoding used for text display.")]
 		public Encoder Encoding
@@ -396,6 +391,8 @@ namespace RPHexEditor
 				{
 					_byteData.DataLengthChanged += new EventHandler(OnByteDataLengthChanged);
 					ReadOnly = value.IsReadOnly;
+					_findData = new FindByteData(_byteData);
+					_findData.PositionFound += OnFindByteDataPositionFound;
 				}
 
 				OnByteDataSourceChanged(EventArgs.Empty);
@@ -404,8 +401,8 @@ namespace RPHexEditor
                 {
                     _bytePos = -1;
                     _isNibble = false;
-					_startSelection = -1;
-					_startSelection = -1;
+					SelectionStart = -1;
+					SelectionStart = -1;
 
                     DestroyCaret();
                 }
@@ -420,6 +417,9 @@ namespace RPHexEditor
 				SetInternalContextMenu();
             }
         }
+
+		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public FindByteDataOption FindDataOption { get; } = null;
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool IsCmdUndoAvailable
@@ -459,41 +459,50 @@ namespace RPHexEditor
 			get { return (ByteDataSource != null && this.Enabled); }
 		}
 
+		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool	IsCmdFindAvailable
+		{
+			get { return (ByteDataSource != null && this.Enabled && FindDataOption != null && _findData != null); }
+		}
+
 		#endregion
 
 		#region Events
 
-		[Description("Fired if the value of the ReadOnly property has changed.")]
+		[Description("Fired if the value of the ReadOnly property has changed."), Category("HexEditor Events")]
 		public event EventHandler ReadOnlyChanged;
 
-		[Description("Fired if the value of the AutomaticBytesPerLine property has changed.")]
+		[Description("Fired if the value of the AutomaticBytesPerLine property has changed."), Category("HexEditor Events")]
 		public event EventHandler AutomaticBytesPerLineChanged;
 
-		[Description("Fired if the value of the BytesPerLine property has changed.")]
+		[Description("Fired if the value of the BytesPerLine property has changed."), Category("HexEditor Events")]
 		public event EventHandler BytesPerLineChanged;
 			
-		[Description("Fired when the selected values have changed.")]
+		[Description("Fired when the selected values have changed."), Category("HexEditor Events")]
 		public event EventHandler SelectionChanged;
 
-		[Description("Fired when the insert / override mode have changed.")]
+		[Description("Fired when the insert / override mode have changed."), Category("HexEditor Events")]
 		public event EventHandler InsertModeChanged;
 
-		[Description("Fired when the caret position have changed.")]
+		[Description("Fired when the caret position have changed."), Category("HexEditor Events")]
 		public event EventHandler BytePositionChanged;
 
-		[Description("Fired when the ByteData source have changed.")]
+		[Description("Fired when the ByteData source have changed."), Category("HexEditor Events")]
 		public event EventHandler ByteDataSourceChanged;
-                        
-        #endregion
+
+		[Description("Fired when the search function has found a position."), Category("HexEditor Events")]
+		public event EventHandler FindPositionFound;
+
+		#endregion
 
 		protected override void Dispose(bool disposing)
 		{
 			if (disposing)
 			{
-				this._thumbTrackVTimer.Enabled = false;
-				this._thumbTrackVTimer.Dispose();
-				this._thumbTrackHTimer.Enabled = false;
-				this._thumbTrackHTimer.Dispose();
+				_thumbTrackVTimer.Enabled = false;
+				_thumbTrackVTimer.Dispose();
+				_thumbTrackHTimer.Enabled = false;
+				_thumbTrackHTimer.Dispose();
 			}
 
 			base.Dispose(disposing);
@@ -528,13 +537,13 @@ namespace RPHexEditor
 		protected override void OnResize(EventArgs e)
 		{
 			base.OnResize(e);
-			this.AdjustWindowSize();
+			AdjustWindowSize();
 		}
 
 		protected override void OnMouseDown(MouseEventArgs e)
 		{
-			if (!this.Focused) this.Focus();
-			if (!this._isShiftActive && e.Button == MouseButtons.Left) this.RemoveSelection();
+			if (!Focused) Focus();
+			if (!_isShiftActive && e.Button == MouseButtons.Left) RemoveSelection();
 
 			if (e.Button == MouseButtons.Left)
 			{
@@ -575,17 +584,17 @@ namespace RPHexEditor
 			{
 				long oldBytePos = _bytePos;
 				
-				GetBytePosFromPoint(p, ref _bytePos, ref this._isNibble);
+				GetBytePosFromPoint(p, ref _bytePos, ref _isNibble);
 
 				_bytePos = (_bytePos > _byteData.Length - 1) ? _byteData.Length - 1 : _bytePos;
 				
-				if (_startSelection == -1)
+				if (SelectionStart == -1)
 				{
-					_startSelection = _bytePos;
-					_endSelection = _bytePos;
+					SelectionStart = _bytePos;
+					SelectionEnd = _bytePos;
 				}
 				else
-					_endSelection = _bytePos;
+					SelectionEnd = _bytePos;
 
 				if (_bytePos != oldBytePos && _caretVisible)
 				{
@@ -594,15 +603,14 @@ namespace RPHexEditor
 				}
 
 				Invalidate();
-				OnSelectionChanged(EventArgs.Empty);
-				
+				OnSelectionChanged(EventArgs.Empty);				
 			}
 		}
 
 		protected override void OnGotFocus(EventArgs e)
 		{				
 			base.OnGotFocus(e);
-			this.CreateCaret();
+			CreateCaret();
 		}
 
 		protected override void OnLostFocus(EventArgs e)
@@ -614,51 +622,44 @@ namespace RPHexEditor
 		protected override void OnMouseWheel(MouseEventArgs e)
 		{
 			int linesToScroll = -(e.Delta * SystemInformation.MouseWheelScrollLines / 120);
-			this.VScrollLines(linesToScroll);
+			VScrollLines(linesToScroll);
 
 			base.OnMouseWheel(e);
 		}
 
 		protected virtual void OnReadOnlyChanged(EventArgs e)
 		{
-			if (ReadOnlyChanged != null)
-				ReadOnlyChanged(this, e);
+			ReadOnlyChanged?.Invoke(this, e);
 		}
 
 		protected virtual void OnAutomaticBytesPerLine(EventArgs e)
 		{
-			if (AutomaticBytesPerLineChanged != null)
-				AutomaticBytesPerLineChanged(this, e);
+			AutomaticBytesPerLineChanged?.Invoke(this, e);
 		}
 
 		protected virtual void OnBytesPerLineChanged(EventArgs e)
 		{
-			if (BytesPerLineChanged != null)
-				BytesPerLineChanged(this, e);
+			BytesPerLineChanged?.Invoke(this, e);
 		}
 
 		protected virtual void OnSelectionChanged(EventArgs e)
 		{
-			if (SelectionChanged != null)
-				SelectionChanged(this, e);
+			SelectionChanged?.Invoke(this, e);
 		}
 
 		protected virtual void OnInsertModeChanged(EventArgs e)
 		{
-			if (InsertModeChanged != null)
-				InsertModeChanged(this, e);
+			InsertModeChanged?.Invoke(this, e);
 		}
 
 		protected virtual void OnBytePositionChanged(EventArgs e)
 		{
-			if (BytePositionChanged != null)
-				BytePositionChanged(this, e);
+			BytePositionChanged?.Invoke(this, e);
 		}
 
 		protected virtual void OnByteDataSourceChanged(EventArgs e)
 		{
-			if (ByteDataSourceChanged != null)
-				ByteDataSourceChanged(this, e);
+			ByteDataSourceChanged?.Invoke(this, e);
 		}
 
 		protected void OnByteDataLengthChanged(object sender, EventArgs e)
@@ -666,7 +667,24 @@ namespace RPHexEditor
 			UpdateScrollBars();
 		}
 
-		void SetHorizontalByteCount(int value)
+		protected void OnFindByteDataPositionFound(object sender, FindByteDataEventArgs e)
+		{
+			if (e.FoundPosition >= 0)
+			{
+				RemoveSelection();
+
+				if (FindDataOption.SearchDirection == SearchDirection.Direction_Down)
+					SetSelection(e.FoundPosition, e.FoundPosition + FindDataOption.SearchBytes.Length - 1);
+				else
+					SetSelection(e.FoundPosition + FindDataOption.SearchBytes.Length - 1, e.FoundPosition);
+
+				ScrollByteIntoView();
+			}
+
+			FindPositionFound?.Invoke(this, e);
+		}
+
+		private void SetHorizontalByteCount(int value)
 		{
 			if (_iHexMaxHBytes == value)
 				return;
@@ -675,7 +693,7 @@ namespace RPHexEditor
 			OnBytesPerLineChanged(EventArgs.Empty);
 		}
 
-		void AdjustWindowSize()
+		private void AdjustWindowSize()
 		{
 			bool vScrollNeeded = false;
 			bool hScrollNeeded = false;
@@ -766,17 +784,17 @@ namespace RPHexEditor
 			UpdateScrollBars();
 		}
 
-		string ByteToHexString(byte b)
+		private string ByteToHexString(byte b)
 		{
 			return b.ToString(_lineByteFormat, System.Threading.Thread.CurrentThread.CurrentCulture);			
 		}
-		
-		string GetCharacterFromByte(byte b)
+
+		private string GetCharacterFromByte(byte b)
 		{
 			return _currEncoder.ToChar(b).ToString();			
 		}
 
-		Color GetDefaultForeColor()
+		private Color GetDefaultForeColor()
 		{
 			if (Enabled)
 				return ForeColor;
@@ -784,7 +802,7 @@ namespace RPHexEditor
 				return Color.Gray;
 		}
 
-        void UpdateVisibilityBytes()
+		private void UpdateVisibilityBytes()
         {
 			if (_byteData == null || _byteData.Length == 0)
                 return;
@@ -793,7 +811,7 @@ namespace RPHexEditor
 			_endByte = (long)Math.Min(_byteData.Length - 1, _startByte + _iHexMaxBytes - 1);
         }
 
-		void DrawAddressLine(Graphics g, long startByte, long endByte)
+		private void DrawAddressLine(Graphics g, long startByte, long endByte)
         {
 			Brush lineBrush = new SolidBrush(System.Drawing.SystemColors.GrayText);
 			long lineAddress = 0;
@@ -812,14 +830,14 @@ namespace RPHexEditor
             }
         }
 
-		void DrawHexByte(Graphics g, byte b, Brush brush, PointL pt)
+		private void DrawHexByte(Graphics g, byte b, Brush brush, PointL pt)
 		{
 			PointF bytePointF = LogToPhyPoint(pt);
 			string sB = ByteToHexString(b);
 			g.DrawString(sB, this.Font, brush, bytePointF, _stringFormat);
 		}
 
-		void DrawSelectedHexByte(Graphics g, byte b, Brush brush, Brush brushBack, PointL pt, bool isLastSelected)
+		private void DrawSelectedHexByte(Graphics g, byte b, Brush brush, Brush brushBack, PointL pt, bool isLastSelected)
 		{
 			PointF bytePointF = LogToPhyPoint(pt);
 			string sB = ByteToHexString(b);			
@@ -830,8 +848,8 @@ namespace RPHexEditor
 			g.FillRectangle(brushBack, bytePointF.X, bytePointF.Y, rectWidth, _charSize.Height);
 			g.DrawString(sB, this.Font, brush, bytePointF, _stringFormat);
 		}
-		
-		void DrawLines(Graphics g, long startByte, long endByte)
+
+		private void DrawLines(Graphics g, long startByte, long endByte)
 		{
 			Brush brush = new SolidBrush(GetDefaultForeColor());
 			Brush selBrush = new SolidBrush(_selectionForeColor);
@@ -850,8 +868,8 @@ namespace RPHexEditor
 				PointL gridPoint = PosToLogPoint(counter);
 				PointF byteStringPointF = LogToPhyPointASCII(gridPoint);
 				
-				long tmpStartSelection = _startSelection;
-				long tmpEndSelection = _endSelection;
+				long tmpStartSelection = SelectionStart;
+				long tmpEndSelection = SelectionEnd;
 
 				if (tmpStartSelection > tmpEndSelection)
 				{
@@ -886,7 +904,7 @@ namespace RPHexEditor
 			}
 		}
 
-		PointL PosToLogPoint(long bytePosition)
+		private PointL PosToLogPoint(long bytePosition)
         {
 			long row = (long)Math.Floor((double)bytePosition / (double)_iHexMaxHBytes);
 			long column = (bytePosition + _iHexMaxHBytes - _iHexMaxHBytes * (row + 1));
@@ -894,29 +912,29 @@ namespace RPHexEditor
 			return new PointL(column, row);
         }
 
-		PointF PosToPhyPoint(long bytePosition)
+		private PointF PosToPhyPoint(long bytePosition)
         {
 			PointL gp = PosToLogPoint(bytePosition);
 
 			return LogToPhyPoint(gp);
         }
 
-		PointF PosToPhyPointASCII(long bytePosition)
+		private PointF PosToPhyPointASCII(long bytePosition)
 		{
 			PointL gp = PosToLogPoint(bytePosition);
 
 			return LogToPhyPointASCII(gp);
 		}
 
-		PointF LogToPhyPoint(PointL pt)
+		private PointF LogToPhyPoint(PointL pt)
         {
             float x = (3 * _charSize.Width) * pt.X + _recHexLine.X;
             float y = (pt.Y + 1) * _charSize.Height - _charSize.Height + _recHexLine.Y;
 
             return new PointF(x, y);
-        }		
+        }
 
-		PointF LogToPhyPointASCII(PointL pt)
+		private PointF LogToPhyPointASCII(PointL pt)
 		{
 			float x = (_charSize.Width) * pt.X + _recCharLine.X;
 			float y = (pt.Y + 1) * _charSize.Height - _charSize.Height + _recCharLine.Y;
@@ -924,7 +942,7 @@ namespace RPHexEditor
 			return new PointF(x, y);
 		}
 
-		void VScrollBar_Scroll(object sender, ScrollEventArgs e)
+		private void VScrollBar_Scroll(object sender, ScrollEventArgs e)
 		{
 			switch (e.Type)
 			{
@@ -968,7 +986,7 @@ namespace RPHexEditor
 			e.NewValue = GetVScrollPosition(_scrollVpos);
 		}
 
-		void HScrollBar_Scroll(object sender, ScrollEventArgs e)
+		private void HScrollBar_Scroll(object sender, ScrollEventArgs e)
 		{
 			switch (e.Type)
 			{
@@ -1012,7 +1030,7 @@ namespace RPHexEditor
 			e.NewValue = GetHScrollPosition(_scrollHpos);
 		}
 
-		void UpdateScrollBars()
+		private void UpdateScrollBars()
 		{
 			if (_byteData == null || _byteData.Length == 0)
 			{
@@ -1058,7 +1076,7 @@ namespace RPHexEditor
 			UpdateHScroll();
 		}
 
-		void UpdateVScroll()
+		private void UpdateVScroll()
 		{
 			int max = (_scrollVmax > Int32.MaxValue) ? Int32.MaxValue : (int)_scrollVmax;
 			vScrollBar.Visible = (max > 0 ? true : false);
@@ -1072,7 +1090,7 @@ namespace RPHexEditor
 			}
 		}
 
-		void UpdateHScroll()
+		private void UpdateHScroll()
 		{
 			int max = (_scrollHmax > Int32.MaxValue) ? Int32.MaxValue : (int)_scrollHmax;
 			hScrollBar.Visible = (max > 0 ? true : false);
@@ -1086,7 +1104,7 @@ namespace RPHexEditor
 			}
 		}
 
-		int GetVScrollPosition(long value)
+		private int GetVScrollPosition(long value)
 		{
 			if (_scrollVmax < Int32.MaxValue)
 				return (int)value;
@@ -1100,7 +1118,7 @@ namespace RPHexEditor
 			}
 		}
 
-		int GetHScrollPosition(long value)
+		private int GetHScrollPosition(long value)
 		{
 			if (_scrollHmax < Int32.MaxValue)
 				return (int)value;
@@ -1113,8 +1131,8 @@ namespace RPHexEditor
 				return res;
 			}
 		}
-		
-		long FromScrollPos(int value)
+
+		private long FromScrollPos(int value)
 		{
 			int max = 65535;
 			if (_scrollVmax < max)
@@ -1129,7 +1147,7 @@ namespace RPHexEditor
 			}
 		}
 
-		void VScrollToLine(long newLineNumber)
+		private void VScrollToLine(long newLineNumber)
 		{
 			_scrollVpos = Math.Min(newLineNumber, _scrollVmax);
 
@@ -1139,7 +1157,7 @@ namespace RPHexEditor
 			Invalidate();
 		}
 
-		void VScrollLines(int lines)
+		private void VScrollLines(int lines)
 		{
 			long pos;
 			if (lines > 0)
@@ -1158,51 +1176,51 @@ namespace RPHexEditor
 			VScrollToLine(pos);
 		}
 
-		void VScrollLineDown()
+		private void VScrollLineDown()
 		{
-			this.VScrollLines(1);
+			VScrollLines(1);
 		}
 
-		void VScrollLineUp()
+		private void VScrollLineUp()
 		{
-			this.VScrollLines(-1);
+			VScrollLines(-1);
 		}
 
-		void VScrollPageDown()
+		private void VScrollPageDown()
 		{
-			this.VScrollLines(_iHexMaxVBytes);
+			VScrollLines(_iHexMaxVBytes);
 		}
 
-		void VScrollPageUp()
+		private void VScrollPageUp()
 		{
-			this.VScrollLines(-_iHexMaxVBytes);
+			VScrollLines(-_iHexMaxVBytes);
 		}
 
-		void VScrollSetThumpPosition(long scrollPos)
+		private void VScrollSetThumpPosition(long scrollPos)
 		{
 			VScrollToLine(GetVScrollPosition(scrollPos));
 		}
 
-		void VScrollThumbTrack(object sender, EventArgs e)
+		private void VScrollThumbTrack(object sender, EventArgs e)
 		{
 			_thumbTrackVTimer.Enabled = false;
 			VScrollSetThumpPosition(_thumbTrackVPosition);
 			_lastThumbTrackMS = Environment.TickCount;
 		}
 
-		void HScrollToColumn(long newColumnNumber)
+		private void HScrollToColumn(long newColumnNumber)
 		{
 			if (newColumnNumber < _scrollHmin || newColumnNumber > _scrollHmax || newColumnNumber == _scrollHpos)
 				return;
 
 			_scrollHpos = newColumnNumber;
 
-			this.AdjustWindowSize();
+			AdjustWindowSize();
 			UpdateCaret();
 			Invalidate();
 		}
-	
-		void HScrollColumns(int columns)
+
+		private void HScrollColumns(int columns)
 		{
 			long pos;
 			if (columns > 0)
@@ -1221,44 +1239,44 @@ namespace RPHexEditor
 			HScrollToColumn(pos);
 		}
 
-		void HScrollColumnRight()
+		private void HScrollColumnRight()
 		{
-			this.HScrollColumns(1);
+			HScrollColumns(1);
 		}
 
-		void HScrollColumnLeft()
+		private void HScrollColumnLeft()
 		{
-			this.HScrollColumns(-1);
+			HScrollColumns(-1);
 		}
 
-		void HScrollLargeRight()
+		private void HScrollLargeRight()
 		{
-			this.HScrollColumns(hScrollBar.LargeChange);
+			HScrollColumns(hScrollBar.LargeChange);
 		}
 
-		void HScrollLargeLeft()
+		private void HScrollLargeLeft()
 		{
-			this.HScrollColumns(-hScrollBar.LargeChange);
+			HScrollColumns(-hScrollBar.LargeChange);
 		}
 
-		void HScrollSetThumpPosition(long scrollPos)
+		private void HScrollSetThumpPosition(long scrollPos)
 		{
 			HScrollToColumn(GetHScrollPosition(scrollPos));
 		}
 
-		void HScrollThumbTrack(object sender, EventArgs e)
+		private void HScrollThumbTrack(object sender, EventArgs e)
 		{
 			_thumbTrackHTimer.Enabled = false;
 			HScrollSetThumpPosition(_thumbTrackHPosition);
 			_lastThumbTrackMS = Environment.TickCount;			
 		}
 
-		void ScrollByteIntoView()
+		private void ScrollByteIntoView()
 		{
 			ScrollByteIntoView(_bytePos);
 		}
 
-		void ScrollByteIntoView(long bytePos)
+		private void ScrollByteIntoView(long bytePos)
 		{
 			if (_byteData == null)
 				return;
@@ -1276,12 +1294,12 @@ namespace RPHexEditor
 			HScrollToColumn(column);
 		}
 
-		void CreateCaret()
+		private void CreateCaret()
 		{
-			if (_byteData == null || this._caretVisible || !this.Focused)
+			if (_byteData == null || _caretVisible || !Focused)
 				return;
 
-			int caretWidth = (this._insertMode == InsertKeyMode.Insert) ? 1 : (int)_charSize.Width;
+			int caretWidth = (_insertMode == InsertKeyMode.Insert) ? 1 : (int)_charSize.Width;
 			int caretHeight = (int)_charSize.Height;
 			//if (Environment.OSVersion.Platform != PlatformID.Unix &&
             //    Environment.OSVersion.Platform != PlatformID.MacOSX)
@@ -1291,10 +1309,10 @@ namespace RPHexEditor
 
 			NativeMethods.ShowCaret(Handle);
 
-			this._caretVisible = true;
+			_caretVisible = true;
 		}
 
-		void UpdateCaret()
+		private void UpdateCaret()
 		{
 			if (_byteData == null)
 				return;			
@@ -1309,7 +1327,7 @@ namespace RPHexEditor
 				case ClickAreas.AREA_ADDRESS:
 				case ClickAreas.AREA_BYTES:
 					{
-						p = this.PosToPhyPoint(bytePosition);
+						p = PosToPhyPoint(bytePosition);
 						if (_isNibble && !_lMouseDown)
 							p.X += _charSize.Width;
 						NativeMethods.SetCaretPos((int)p.X, (int)p.Y);
@@ -1318,7 +1336,7 @@ namespace RPHexEditor
 					}
 				case ClickAreas.AREA_CHARS:
 					{
-						p = this.PosToPhyPointASCII(bytePosition);
+						p = PosToPhyPointASCII(bytePosition);
 						NativeMethods.SetCaretPos((int)p.X, (int)p.Y);
 						_enterMode = EnterMode.CHARS;
 						break;
@@ -1329,7 +1347,7 @@ namespace RPHexEditor
 			OnBytePositionChanged(EventArgs.Empty);
 		}
 
-		void DestroyCaret()
+		private void DestroyCaret()
 		{
 			if (!_caretVisible)
 				return;
@@ -1338,18 +1356,18 @@ namespace RPHexEditor
 			_caretVisible = false;
 		}
 
-		void UpdateCaretPosition(Point p, bool bSnap = false )
+		private void UpdateCaretPosition(Point p, bool bSnap = false )
 		{
 			if (_byteData == null)
 				return;
 
-			GetBytePosFromPoint(p, ref _bytePos, ref this._isNibble);
-			if (bSnap) this._isNibble = false;
+			GetBytePosFromPoint(p, ref _bytePos, ref _isNibble);
+			if (bSnap) _isNibble = false;
 			UpdateCaret();
 			Invalidate();
 		}
 
-		void GetBytePosFromPoint(Point p, ref long _bytePos, ref bool _isNibble)
+		private void GetBytePosFromPoint(Point p, ref long _bytePos, ref bool _isNibble)
 		{
 			int xPos = 0;
 			int yPos = 0;
@@ -1388,7 +1406,7 @@ namespace RPHexEditor
 			System.Diagnostics.Debug.WriteLine("BytePos: " + _bytePos + " IsNibble: " + _isNibble);
 		}
 
-		void SetCaretPosition(long newBytePosition, bool isNibble)
+		private void SetCaretPosition(long newBytePosition, bool isNibble)
 		{
 			if (isNibble != _isNibble)
 				_isNibble = isNibble;
@@ -1405,16 +1423,16 @@ namespace RPHexEditor
 
 		public bool HasSelection()
 		{
-			return (_startSelection >= 0 && _endSelection >= 0);
+			return (SelectionStart >= 0 && SelectionEnd >= 0);
 		}
 
 		public void RemoveSelection()
 		{
-			if (this.HasSelection())
+			if (HasSelection())
 				OnSelectionChanged(EventArgs.Empty);
 
-			_startSelection = -1;
-			_endSelection = -1;			
+			SelectionStart = -1;
+			SelectionEnd = -1;			
 			
 			Invalidate();
 		}
@@ -1429,6 +1447,8 @@ namespace RPHexEditor
 			long tmpStartSelection = Math.Min(selStart, _byteData.Length - 1);
 			long tmpEndSelection = Math.Min(selEnd, _byteData.Length - 1);
 
+			_bytePos = tmpEndSelection;
+
 			if (tmpStartSelection > tmpEndSelection)
 			{
 				long tmp = tmpStartSelection;
@@ -1436,13 +1456,13 @@ namespace RPHexEditor
 				tmpEndSelection = tmp;
 			}
 
-			_startSelection = Math.Max(0, tmpStartSelection);
-			_bytePos = _endSelection = Math.Min(tmpEndSelection, _byteData.Length - 1);
+			SelectionStart = Math.Max(0, tmpStartSelection);
+			SelectionEnd = Math.Min(tmpEndSelection, _byteData.Length - 1);
 			
 			UpdateCaret();
 			Invalidate();
 
-			if (this.HasSelection())
+			if (HasSelection())
 				OnSelectionChanged(EventArgs.Empty);
 		}
 
@@ -1453,25 +1473,25 @@ namespace RPHexEditor
 
 			RemoveSelection();
 
-			_startSelection = 0;
-			_bytePos = _endSelection = _byteData.Length - 1;
+			SelectionStart = 0;
+			_bytePos = SelectionEnd = _byteData.Length - 1;
 
 			UpdateCaret();
 			Invalidate();
 
-			if (this.HasSelection())
+			if (HasSelection())
 				OnSelectionChanged(EventArgs.Empty);			
 		}
 
 		public long GetSelectionLength()
 		{
-			if (_endSelection > _startSelection)
-				return _endSelection - _startSelection + 1;
+			if (SelectionEnd > SelectionStart)
+				return SelectionEnd - SelectionStart + 1;
 			else
-				return _startSelection - _endSelection + 1;
+				return SelectionStart - SelectionEnd + 1;
 		}
 
-		public override bool PreProcessMessage(ref System.Windows.Forms.Message msg)
+		public override bool PreProcessMessage(ref Message msg)
 		{
 			const int WM_KEYDOWN = 0x100;
 			const int WM_KEYUP = 0x101;
@@ -1491,32 +1511,42 @@ namespace RPHexEditor
 		}
 		
 		protected bool PreProcessWmKeyDown(ref Message msg)
-		{
+		{			
 			Keys key = (Keys)msg.WParam.ToInt32();
 			Keys keyData = key | Control.ModifierKeys;
 
 			KeyEventArgs e = new KeyEventArgs(keyData);
-			this.OnKeyDown(e);
+			OnKeyDown(e);
 			if (e.Handled) return true;
 
 			switch (keyData)
 			{
+				case Keys.A | Keys.Control:
+				{
+					SelectAll();
+					return true;
+				}
 				case Keys.C | Keys.Control:
 				{
-					this.Copy();
+					Copy();
 					return true;
 				}
 				case Keys.V | Keys.Control:
 				{
-					this.Paste();
+					Paste();
 					return true;
 				}
 				case Keys.X | Keys.Control:
 				{
-					this.Cut();
+					Cut();
 					return true;
 				}
-			}
+				case Keys.Z | Keys.Control:
+				{
+					Undo();
+					return true;
+				}
+			}		
 
 			switch (key) 
 			{
@@ -1529,7 +1559,7 @@ namespace RPHexEditor
 					if (_isShiftActive)
 					{
 						currPos = Math.Max(0, currPos);
-						_endSelection = currPos;
+						SelectionEnd = currPos;
 						OnSelectionChanged(EventArgs.Empty);
 					}
 
@@ -1545,7 +1575,7 @@ namespace RPHexEditor
 					ScrollByteIntoView();
 
 					if (!_isShiftActive)
-						this.RemoveSelection();						
+						RemoveSelection();						
 
 					return true;
 				}
@@ -1558,7 +1588,7 @@ namespace RPHexEditor
 					if (_isShiftActive)
 					{
 						currPos = Math.Min(_byteData.Length - 1, currPos);
-						_endSelection = currPos;
+						SelectionEnd = currPos;
 						OnSelectionChanged(EventArgs.Empty);
 					}
 
@@ -1574,7 +1604,7 @@ namespace RPHexEditor
 					ScrollByteIntoView();
 
 					if (!_isShiftActive)
-						this.RemoveSelection();
+						RemoveSelection();
 
 					return true;
 				}
@@ -1587,7 +1617,7 @@ namespace RPHexEditor
 					if (_isShiftActive)
 					{
 						currPos = Math.Min(_byteData.Length - 1, currPos);
-						_endSelection = currPos;
+						SelectionEnd = currPos;
 						OnSelectionChanged(EventArgs.Empty);
 					}
 						
@@ -1603,7 +1633,7 @@ namespace RPHexEditor
 					ScrollByteIntoView();
 
 					if (!_isShiftActive)
-						this.RemoveSelection();
+						RemoveSelection();
 						
 					return true;
 				}
@@ -1616,7 +1646,7 @@ namespace RPHexEditor
 					if (_isShiftActive)
 					{
 						currPos = Math.Max(0, currPos);
-						_endSelection = currPos;
+						SelectionEnd = currPos;
 						OnSelectionChanged(EventArgs.Empty);
 					}
 
@@ -1632,7 +1662,7 @@ namespace RPHexEditor
 					ScrollByteIntoView();
 
 					if (!_isShiftActive)
-						this.RemoveSelection();
+						RemoveSelection();
 
 					return true;
 				}
@@ -1646,7 +1676,7 @@ namespace RPHexEditor
 					if (_isShiftActive)
 					{
 						currPos = Math.Min(_byteData.Length - 1, currPos);
-						_endSelection = currPos;
+						SelectionEnd = currPos;
 						OnSelectionChanged(EventArgs.Empty);
 					}
 
@@ -1656,7 +1686,7 @@ namespace RPHexEditor
 						VScrollPageDown();
 
 					if (!_isShiftActive)
-						this.RemoveSelection();
+						RemoveSelection();
 
 					UpdateCaret();
 					Invalidate();
@@ -1673,7 +1703,7 @@ namespace RPHexEditor
 					if (_isShiftActive)
 					{
 						currPos = Math.Max(0, currPos);
-						_endSelection = currPos;
+						SelectionEnd = currPos;
 						OnSelectionChanged(EventArgs.Empty);
 					}
 
@@ -1683,10 +1713,10 @@ namespace RPHexEditor
 						VScrollPageUp();
 
 					if (_isShiftActive)
-						_endSelection = currPos;
+						SelectionEnd = currPos;
 
 					if (!_isShiftActive)
-						this.RemoveSelection();
+						RemoveSelection();
 
 					UpdateCaret();
 					Invalidate();
@@ -1702,13 +1732,13 @@ namespace RPHexEditor
 
 					if (_isShiftActive)
 					{
-						_endSelection = newPos;
+						SelectionEnd = newPos;
 						OnSelectionChanged(EventArgs.Empty);
 						Invalidate();
 					}
 
 					if (!_isShiftActive)
-						this.RemoveSelection();			
+						RemoveSelection();			
 
 					return true;
 				}
@@ -1721,21 +1751,21 @@ namespace RPHexEditor
 
 					if (_isShiftActive)
 					{
-						_endSelection = newPos;
+						SelectionEnd = newPos;
 						OnSelectionChanged(EventArgs.Empty);
 						Invalidate();
 					}
 
 					if (!_isShiftActive)
-						this.RemoveSelection();
+						RemoveSelection();
 					
 					return true;
 				}
 				case Keys.ShiftKey:
 				{
 					this._isShiftActive = true;
-					if (!this.HasSelection())
-						_startSelection = Math.Min(_bytePos, _byteData.Length - 1);
+					if (!HasSelection())
+						SelectionStart = Math.Min(_bytePos, _byteData.Length - 1);
 						
 					return true;
 				}
@@ -1749,7 +1779,7 @@ namespace RPHexEditor
 				}
 				case Keys.Delete:
 				{
-					if (this._readOnly)
+					if (_readOnly)
 						return true;
 					
 					long currPos = _bytePos;
@@ -1757,11 +1787,11 @@ namespace RPHexEditor
 					if (currPos > _byteData.Length - 1)
 						return true;
 
-					if (this.HasSelection())
+					if (HasSelection())
 					{
-						_byteData.DeleteBytes(_startSelection > _endSelection ? _endSelection : _startSelection, GetSelectionLength());
+						_byteData.DeleteBytes(SelectionStart > SelectionEnd ? SelectionEnd : SelectionStart, GetSelectionLength());
 
-						SetCaretPosition(_startSelection > _endSelection ? _endSelection : _startSelection, false);
+						SetCaretPosition(SelectionStart > SelectionEnd ? SelectionEnd : SelectionStart, false);
 						UpdateCaret();
 						RemoveSelection();
 					}
@@ -1775,10 +1805,10 @@ namespace RPHexEditor
 				}
 				case Keys.Back:
 				{
-					if (this._readOnly || _bytePos <= 0)
+					if (_readOnly || _bytePos <= 0)
 						return true;
 
-					if (!this.HasSelection())
+					if (!HasSelection())
 					{
 						_bytePos--;
 						_byteData.DeleteBytes(_bytePos, 1);
@@ -1788,12 +1818,15 @@ namespace RPHexEditor
 						Invalidate();
 					}
 					else
-						this.Cut();
+						Cut();
 
 					return true;
 				}
 				default:
 				{
+					if (base.PreProcessMessage(ref msg) == true)
+						return true;
+
 					return false;
 				}
 			}
@@ -1834,7 +1867,7 @@ namespace RPHexEditor
 				return true;
 
 			if (_bytePos == _byteData.Length)
-				this.InsertMode = InsertKeyMode.Insert;
+				InsertMode = InsertKeyMode.Insert;
 
 			if (_enterMode == EnterMode.BYTES)
 			{
@@ -1844,7 +1877,7 @@ namespace RPHexEditor
 				if (!Uri.IsHexDigit(ch))
 					return false;
 
-				if (this._insertMode == InsertKeyMode.Insert)
+				if (_insertMode == InsertKeyMode.Insert)
 				{
 
 					if (_isNibble)
@@ -1881,7 +1914,7 @@ namespace RPHexEditor
 			{
 				byte charByte = Convert.ToByte(ch);
 				
-				if (this._insertMode == InsertKeyMode.Insert)
+				if (_insertMode == InsertKeyMode.Insert)
 					_byteData.InsertBytes(_bytePos, new byte[] { charByte });
 				else
 					_byteData.WriteByte(_bytePos, charByte);
@@ -1895,16 +1928,16 @@ namespace RPHexEditor
 			return true;
 		}
 
-		bool GetCopyData(ref byte[] byteData)
+		private bool GetCopyData(ref byte[] byteData)
 		{
-			if (!this.HasSelection() || _byteData == null)
+			if (!HasSelection() || _byteData == null)
 				return false;
 
 			long counter = 0;
 
-			byteData = new Byte[GetSelectionLength()];
+			byteData = new byte[GetSelectionLength()];
 
-			long lStartIdx = Math.Min(_startSelection, _endSelection);
+			long lStartIdx = Math.Min(SelectionStart, SelectionEnd);
 
 			for (long pos = lStartIdx; pos < GetSelectionLength() + lStartIdx; pos++)
 			{
@@ -1961,22 +1994,18 @@ namespace RPHexEditor
 
 			try
 			{
-				if (this.HasSelection())
+				if (HasSelection())
 				{
-					_byteData.DeleteBytes(_startSelection > _endSelection ? _endSelection : _startSelection, GetSelectionLength());
+					_byteData.DeleteBytes(SelectionStart > SelectionEnd ? SelectionEnd : SelectionStart, GetSelectionLength());
 					RemoveSelection();
 				}
 
-				DataObject clip_DO = Clipboard.GetDataObject() as DataObject;
-
-				if (clip_DO == null)
+				if (!(Clipboard.GetDataObject() is DataObject clip_DO))
 					return bRet;
 
 				if (clip_DO.GetDataPresent("rawbinary"))
 				{
-					MemoryStream ms = clip_DO.GetData("rawbinary") as MemoryStream;
-
-					if (ms == null)
+					if (!(clip_DO.GetData("rawbinary") is MemoryStream ms))
 						return bRet;
 
 					bytePasteData = new byte[ms.Length];
@@ -1984,7 +2013,7 @@ namespace RPHexEditor
 				}
 				else if (clip_DO.GetDataPresent(typeof(string)))
 				{
-					string sBuffer = clip_DO.GetData(typeof(string)) as String;
+					string sBuffer = clip_DO.GetData(typeof(string)) as string;
 					bytePasteData = System.Text.Encoding.ASCII.GetBytes(sBuffer);
 				}
 				else
@@ -2019,9 +2048,9 @@ namespace RPHexEditor
 				bRet = Copy();
 				if (bRet)
 				{
-					_byteData.DeleteBytes(_startSelection > _endSelection ? _endSelection : _startSelection, GetSelectionLength());
+					_byteData.DeleteBytes(SelectionStart > SelectionEnd ? SelectionEnd : SelectionStart, GetSelectionLength());
 
-					SetCaretPosition(_startSelection > _endSelection ? _endSelection : _startSelection, false);
+					SetCaretPosition(SelectionStart > SelectionEnd ? SelectionEnd : SelectionStart, false);
 					UpdateCaret();
 					RemoveSelection();
 				}
@@ -2041,6 +2070,12 @@ namespace RPHexEditor
 				_byteData.Undo();
 				Invalidate();
 			}
+		}
+
+		public void Find()
+		{
+			if (IsCmdFindAvailable)
+				_findData.Find(FindDataOption);
 		}
 
 		private void SetInternalContextMenu()
@@ -2107,30 +2142,30 @@ namespace RPHexEditor
 
 		private void InternalContextMenuCut_Click(object sender, EventArgs e)
 		{
-			this.Cut();
+			Cut();
 		}
 
 		private void InternalContextMenuCopy_Click(object sender, EventArgs e)
 		{
-			this.Copy();
+			Copy();
 		}
 
 		private void InternalContextMenuPaste_Click(object sender, EventArgs e)
 		{
-			this.Paste();
+			Paste();
 		}
 
 		private void InternalContextMenuSelectAll_Click(object sender, EventArgs e)
 		{
-			this.SelectAll();
+			SelectAll();
 		}
 
-		void InternalContextMenu_Opening(object sender, CancelEventArgs e)
+		private void InternalContextMenu_Opening(object sender, CancelEventArgs e)
 		{
-			_internalCutMenuItem.Enabled = this.IsCmdCutAvailable;
-			_internalCopyMenuItem.Enabled = this.IsCmdCopyAvailable;
-			_internalPasteMenuItem.Enabled = this.IsCmdPasteAvailable;
-			_internalSelectAllMenuItem.Enabled = this.IsCmdSelectAvailable;
+			_internalCutMenuItem.Enabled = IsCmdCutAvailable;
+			_internalCopyMenuItem.Enabled = IsCmdCopyAvailable;
+			_internalPasteMenuItem.Enabled = IsCmdPasteAvailable;
+			_internalSelectAllMenuItem.Enabled = IsCmdSelectAvailable;
 		}
 
 		public void CommitChanges()
@@ -2144,7 +2179,6 @@ namespace RPHexEditor
 
 			using (Graphics g = this.CreateGraphics())
 			{
-				NativeMethods.TEXTMETRICW oTextMetric;
 				IntPtr hFont = IntPtr.Zero;
 				IntPtr hFontDefault = IntPtr.Zero;
 
@@ -2155,7 +2189,7 @@ namespace RPHexEditor
 					hFont = font.ToHfont();
 					hFontDefault = NativeMethods.SelectObject(hDC, hFont);
 
-					if (NativeMethods.GetTextMetrics(hDC, out oTextMetric))
+					if (NativeMethods.GetTextMetrics(hDC, out NativeMethods.TEXTMETRICW oTextMetric))
 					{
 						if ((oTextMetric.tmPitchAndFamily & 1) == 0)
 							bRet = true;

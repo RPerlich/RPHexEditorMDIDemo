@@ -176,6 +176,16 @@ namespace RPHexEditorMDIDemo
 			child.Paste();
 		}
 
+		private void findToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
+
+			if (child != null)
+			{
+				child.Find();
+			}
+		}
+
 		private void ToolBarToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			toolStrip.Visible = toolBarToolStripMenuItem.Checked;
@@ -268,5 +278,7 @@ namespace RPHexEditorMDIDemo
 			this.saveAsToolStripMenuItem.Enabled = MdiChildren.Length > 0;
 			this.saveToolStripButton.Enabled = this.saveAsToolStripMenuItem.Enabled;
 		}
+
+		
 	}
 }

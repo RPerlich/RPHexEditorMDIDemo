@@ -37,6 +37,7 @@
 			this.rpHexEditor.SelectionChanged += new System.EventHandler(this.RPHexEditor_SelectionChanged);
 			this.rpHexEditor.InsertModeChanged += new System.EventHandler(this.RPHexEditor_InsertModeChanged);
 			this.rpHexEditor.BytePositionChanged += new System.EventHandler(this.RPHexEditor_BytePositionChanged);
+			this.rpHexEditor.FindPositionFound += new System.EventHandler(this.RPHexEditor_FindPositionFound);
 			// 
 			// RPHexEditorForm
 			// 
@@ -49,6 +50,7 @@
 			this.Text = "RPForm";
 			this.Activated += new System.EventHandler(this.RPHexEditorForm_Activated);
 			this.Deactivate += new System.EventHandler(this.RPHexEditorForm_Deactivate);
+			this.ResizeEnd += new System.EventHandler(this.RPHexEditorForm_ResizeEnd);
 			this.ResumeLayout(false);
 
         }

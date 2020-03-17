@@ -72,6 +72,12 @@
     <Compile Include="RPHexEditorUC.Designer.cs">
       <DependentUpon>RPHexEditorUC.cs</DependentUpon>
     </Compile>
+    <Compile Include="RPQuickFind.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="RPQuickFind.Designer.cs">
+      <DependentUpon>RPQuickFind.cs</DependentUpon>
+    </Compile>
     <EmbeddedResource Include="MDIDemo.resx">
       <DependentUpon>MDIDemo.cs</DependentUpon>
     </EmbeddedResource>
@@ -93,6 +99,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="RPHexEditorUC.resx">
       <DependentUpon>RPHexEditorUC.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="RPQuickFind.resx">
+      <DependentUpon>RPQuickFind.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="ClassDiagram1.cd" />
     <None Include="Properties\Settings.settings">
