@@ -11,6 +11,8 @@ namespace RPHexEditorMDIDemo
 
 			toolTipFind.SetToolTip(btnFind, "Find next (F3)");
 			toolTipClose.SetToolTip(btnClose, "Close");
+			toolTipMatchCase.SetToolTip(cbMatchCase, "Match case");
+			toolTipFindPrevious.SetToolTip(cbFindPrev, "Find previous");
 		}
 
 		public event EventHandler FindNext;
@@ -20,6 +22,8 @@ namespace RPHexEditorMDIDemo
 			if (tbSearchText.Text != string.Empty)
 			{
 				SearchText = tbSearchText.Text;
+				MatchCase = cbMatchCase.Checked;
+				FindPrevious = cbFindPrev.Checked;
 				FindNext?.Invoke(this, e);
 			}
 			else
@@ -32,5 +36,9 @@ namespace RPHexEditorMDIDemo
 		}
 
 		public string SearchText { get; set; }
+
+		public bool MatchCase { get; set; }
+
+		public bool FindPrevious { get; set; }
 	}
 }

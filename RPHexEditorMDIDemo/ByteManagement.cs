@@ -905,8 +905,9 @@ namespace RPHexEditor
 	{
 		System.Text.ASCIIEncoding _enc = null;
 		byte[] _searchBytes = null;
-		string _seachText = string.Empty;
+		string _searchText = string.Empty;
 		long _searchStartIndex = 0;
+		bool _matchCase = false;
 
 		public FindByteDataOption()
 		{
@@ -921,20 +922,25 @@ namespace RPHexEditor
 				if (value != null)
 				{
 					_searchBytes = value;
-					SearchText = new string(_enc.GetChars(_searchBytes));
+					_matchCase = false;
+					_searchText = new string(_enc.GetChars(_searchBytes));
 				}
 			}
 		}
 
 		public string SearchText
 		{
-			get { return _seachText; }
+			get { return _searchText; }
 			set
 			{
 				if (value != null && value.Length > 0)
 				{
-					_seachText = value;
-					_searchBytes = _enc.GetBytes(_seachText);
+					_searchText = value;
+
+					if (!_matchCase)
+						_searchText = _searchText.ToLower();
+
+					_searchBytes = _enc.GetBytes(_searchText);
 				}
 			}
 		}
@@ -946,8 +952,31 @@ namespace RPHexEditor
 			get { return _searchStartIndex; }
 			set
 			{
-				if (value > 0)
+				if (value >= 0)
 					_searchStartIndex = value;
+			}
+		}
+
+		public bool MatchCase
+		{
+			get { return _matchCase; }
+			set
+			{
+				if (_matchCase == value)
+					return;
+
+				_matchCase = value;
+
+				if (!_matchCase)
+				{
+					_searchText = SearchText.ToLower();
+					_searchBytes = _enc.GetBytes(_searchText);
+				}
+				else
+				{
+					_searchText = new string(_enc.GetChars(_searchBytes));
+					_searchBytes = _enc.GetBytes(_searchText);
+				}
 			}
 		}
 	}
@@ -957,6 +986,7 @@ namespace RPHexEditor
 		byte[] _buffer = null;
 		IByteData _byteData = null;
 		long _startIndex = 0;
+		bool _matchCase = false;
 
 		public FindByteData(IByteData byteData)
 		{
@@ -967,6 +997,7 @@ namespace RPHexEditor
 		public void Find(FindByteDataOption findByteDataOption)
 		{
 			_startIndex = findByteDataOption.SearchStartIndex;
+			_matchCase = findByteDataOption.MatchCase;
 
 			FindByteDataEventArgs args = new FindByteDataEventArgs();
 
@@ -989,7 +1020,7 @@ namespace RPHexEditor
 		{
 			while (_startIndex < _byteData.Length)
 			{
-				FillBuffer(_buffer, _startIndex);
+				long bufferSize = FillBuffer(_buffer, _startIndex);
 
 				int i = FindBuffer(_buffer, findByteDataOption.SearchBytes);
 
@@ -1006,12 +1037,13 @@ namespace RPHexEditor
 		{
 			while (_startIndex > 0)
 			{
-				FillBufferUp(_buffer, _startIndex);
+				long bufferSize = FillBufferUp(_buffer, _startIndex);
 
 				int i = FindBuffer(_buffer, findByteDataOption.SearchBytes);
 
 				if (i >= 0)
-					return _startIndex - (_buffer.Length - i) + 1;
+					//return _startIndex - (_buffer.Length - i) + 1;
+					return _startIndex - (bufferSize - i) + 1;
 				else
 					_startIndex -= _buffer.Length - findByteDataOption.SearchBytes.Length + 1;
 			}
@@ -1019,7 +1051,7 @@ namespace RPHexEditor
 			return -1;
 		}
 
-		private void FillBuffer(byte[] buffer, long idx)
+		private long FillBuffer(byte[] buffer, long idx)
 		{
 			Array.Clear(buffer, 0, buffer.Length);
 
@@ -1030,11 +1062,13 @@ namespace RPHexEditor
 
 			for (long i = 0; i < _maxBufferToRead; i++)
 				buffer[i] = _byteData.ReadByte(i + idx);
-
+			
 			System.Diagnostics.Debug.WriteLine("Search: Fill buffer from {0:x} to {1:x}. StreamSize: {2:x}", idx, (idx + _maxBufferToRead - 1), _byteData.Length);
+
+			return _maxBufferToRead;
 		}
 
-		private void FillBufferUp(byte[] buffer, long idx)
+		private long FillBufferUp(byte[] buffer, long idx)
 		{
 			Array.Clear(buffer, 0, buffer.Length);
 
@@ -1047,6 +1081,8 @@ namespace RPHexEditor
 				buffer[_maxBufferToRead - 1 - i] = _byteData.ReadByte(idx - i);
 
 			System.Diagnostics.Debug.WriteLine("Search: Fill buffer from {0:x} to {1:x}. StreamSize: {2:x}", idx, (idx + 1 - _maxBufferToRead), _byteData.Length);
+
+			return _maxBufferToRead;
 		}
 
 		private int FindBuffer(byte[] buffer, byte[] searchForBytes)
@@ -1075,8 +1111,18 @@ namespace RPHexEditor
 				return false;
 
 			for (int i = 0; i < searchForBytes.Length; i++)
-				if (buffer[idx + i] != searchForBytes[i])
-					return false;
+			{
+				if (_matchCase)
+				{
+					if (buffer[idx + i] != searchForBytes[i])
+						return false;
+				}
+				else
+				{
+					if (buffer[idx + i] != searchForBytes[i] && (buffer[idx + i] != (searchForBytes[i]) - 0x20))
+						return false;
+				}
+			}
 
 			return true;
 		}

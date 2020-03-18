@@ -35,6 +35,10 @@
 			this.btnFind = new System.Windows.Forms.Button();
 			this.toolTipFind = new System.Windows.Forms.ToolTip(this.components);
 			this.toolTipClose = new System.Windows.Forms.ToolTip(this.components);
+			this.cbMatchCase = new System.Windows.Forms.CheckBox();
+			this.toolTipMatchCase = new System.Windows.Forms.ToolTip(this.components);
+			this.cbFindPrev = new System.Windows.Forms.CheckBox();
+			this.toolTipFindPrevious = new System.Windows.Forms.ToolTip(this.components);
 			this.SuspendLayout();
 			// 
 			// btnClose
@@ -44,7 +48,7 @@
 			this.btnClose.Margin = new System.Windows.Forms.Padding(0);
 			this.btnClose.Name = "btnClose";
 			this.btnClose.Size = new System.Drawing.Size(23, 22);
-			this.btnClose.TabIndex = 0;
+			this.btnClose.TabIndex = 2;
 			this.btnClose.UseVisualStyleBackColor = true;
 			this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
 			// 
@@ -66,17 +70,43 @@
 			this.btnFind.UseVisualStyleBackColor = true;
 			this.btnFind.Click += new System.EventHandler(this.btnFind_Click);
 			// 
+			// cbMatchCase
+			// 
+			this.cbMatchCase.Appearance = System.Windows.Forms.Appearance.Button;
+			this.cbMatchCase.Image = ((System.Drawing.Image)(resources.GetObject("cbMatchCase.Image")));
+			this.cbMatchCase.Location = new System.Drawing.Point(5, 26);
+			this.cbMatchCase.Margin = new System.Windows.Forms.Padding(0);
+			this.cbMatchCase.Name = "cbMatchCase";
+			this.cbMatchCase.Size = new System.Drawing.Size(23, 22);
+			this.cbMatchCase.TabIndex = 3;
+			this.cbMatchCase.UseVisualStyleBackColor = true;
+			// 
+			// cbFindPrev
+			// 
+			this.cbFindPrev.Appearance = System.Windows.Forms.Appearance.Button;
+			this.cbFindPrev.Image = ((System.Drawing.Image)(resources.GetObject("cbFindPrev.Image")));
+			this.cbFindPrev.Location = new System.Drawing.Point(28, 26);
+			this.cbFindPrev.Margin = new System.Windows.Forms.Padding(0);
+			this.cbFindPrev.Name = "cbFindPrev";
+			this.cbFindPrev.Size = new System.Drawing.Size(23, 22);
+			this.cbFindPrev.TabIndex = 4;
+			this.cbFindPrev.UseVisualStyleBackColor = true;
+			// 
 			// RPQuickFind
 			// 
 			this.AcceptButton = this.btnFind;
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(181, 26);
+			this.BackColor = System.Drawing.Color.Ivory;
+			this.ClientSize = new System.Drawing.Size(181, 52);
 			this.ControlBox = false;
+			this.Controls.Add(this.cbFindPrev);
+			this.Controls.Add(this.cbMatchCase);
 			this.Controls.Add(this.btnFind);
 			this.Controls.Add(this.tbSearchText);
 			this.Controls.Add(this.btnClose);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+			this.KeyPreview = true;
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
 			this.MinimumSize = new System.Drawing.Size(50, 16);
@@ -96,5 +126,9 @@
 		private System.Windows.Forms.Button btnFind;
 		private System.Windows.Forms.ToolTip toolTipFind;
 		private System.Windows.Forms.ToolTip toolTipClose;
+		private System.Windows.Forms.CheckBox cbMatchCase;
+		private System.Windows.Forms.ToolTip toolTipMatchCase;
+		private System.Windows.Forms.CheckBox cbFindPrev;
+		private System.Windows.Forms.ToolTip toolTipFindPrevious;
 	}
 }

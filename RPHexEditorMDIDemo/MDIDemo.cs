@@ -73,6 +73,16 @@ namespace RPHexEditorMDIDemo
 			get { return this.selectAllToolStripMenuItem; }
 		}
 
+		public ToolStripMenuItem GetTSM_Find
+		{
+			get { return this.findToolStripMenuItem; }
+		}
+
+		public ToolStripMenuItem GetTSM_FindNext
+		{
+			get { return this.findNextToolStripMenuItem; }
+		}
+
 		public ToolStripButton GetTSB_Undo
 		{
 			get { return this.undoToolStripButton; }
@@ -143,7 +153,7 @@ namespace RPHexEditorMDIDemo
 			this.Close();
 		}
 
-		private void undoToolStripMenuItem_Click(object sender, EventArgs e)
+		private void UndoToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
 
@@ -153,7 +163,7 @@ namespace RPHexEditorMDIDemo
 			}
 		}
 
-		private void redoToolStripMenuItem_Click(object sender, EventArgs e)
+		private void RedoToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			throw new NotImplementedException();
 		}
@@ -176,13 +186,23 @@ namespace RPHexEditorMDIDemo
 			child.Paste();
 		}
 
-		private void findToolStripMenuItem_Click(object sender, EventArgs e)
+		private void FindToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
 
 			if (child != null)
 			{
 				child.Find();
+			}
+		}
+
+		private void FindNextToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
+
+			if (child != null)
+			{
+				child.FindNext();
 			}
 		}
 
@@ -262,23 +282,24 @@ namespace RPHexEditorMDIDemo
 		{
 			if (MdiChildren.Length == 0)
 			{
-				this.copyToolStripMenuItem.Enabled = false;
-				this.cutToolStripMenuItem.Enabled = false;
-				this.pasteToolStripMenuItem.Enabled = false;
-				this.selectAllToolStripMenuItem.Enabled = false;
-				this.undoToolStripMenuItem.Enabled = false;
-				this.redoToolStripMenuItem.Enabled = false;
-				this.copyToolStripButton.Enabled = false;
-				this.cutToolStripButton.Enabled = false;
-				this.pasteToolStripButton.Enabled = false;
-				this.undoToolStripButton.Enabled = false;
+				copyToolStripMenuItem.Enabled = false;
+				cutToolStripMenuItem.Enabled = false;
+				pasteToolStripMenuItem.Enabled = false;
+				selectAllToolStripMenuItem.Enabled = false;
+				undoToolStripMenuItem.Enabled = false;
+				redoToolStripMenuItem.Enabled = false;
+				findToolStripMenuItem.Enabled = false;
+				findNextToolStripMenuItem.Enabled = false;
+				copyToolStripButton.Enabled = false;
+				cutToolStripButton.Enabled = false;
+				pasteToolStripButton.Enabled = false;
+				undoToolStripButton.Enabled = false;
+				
 			}
 
-			this.saveToolStripMenuItem.Enabled = MdiChildren.Length > 0;
-			this.saveAsToolStripMenuItem.Enabled = MdiChildren.Length > 0;
-			this.saveToolStripButton.Enabled = this.saveAsToolStripMenuItem.Enabled;
+			saveToolStripMenuItem.Enabled = MdiChildren.Length > 0;
+			saveAsToolStripMenuItem.Enabled = MdiChildren.Length > 0;
+			saveToolStripButton.Enabled = saveAsToolStripMenuItem.Enabled;
 		}
-
-		
 	}
 }

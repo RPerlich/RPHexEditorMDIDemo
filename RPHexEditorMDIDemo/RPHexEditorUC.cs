@@ -465,6 +465,12 @@ namespace RPHexEditor
 			get { return (ByteDataSource != null && this.Enabled && FindDataOption != null && _findData != null); }
 		}
 
+		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsCmdFindNextAvailable
+		{
+			get { return (ByteDataSource != null && this.Enabled && FindDataOption != null && _findData != null); }
+		}
+
 		#endregion
 
 		#region Events

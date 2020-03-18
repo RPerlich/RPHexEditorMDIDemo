@@ -142,4 +142,30 @@
   <metadata name="toolTipClose.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>130, 17</value>
   </metadata>
+  <data name="cbMatchCase.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1
+        MAAA6mAAADqYAAAXb5JfxUYAAAAJcEhZcwAADsQAAA7EAZUrDhsAAAETSURBVDhPpZKhjoNAEIb7KDzC
+        PUKDJ6nFVeA5jarCXvAkJ5En8FTj8eAR57DT+bY7G8rR5Jpu8sPsPzvf7C4cROQt7Zqv6GEsy3JWXb1O
+        3n469gBjWZZS17UA8fbT8QDQgo9pmiSOY6d5noFEPk3+qLqoPs3fAr6rqpIsyyRNU2maBgAFkWochsHt
+        rG1bg5+2gF8KWWAgClXHvu8lSRLJ89zBLRcAOjl3XRe2Tjdi3pr7wvNdQ454DbhyeXZ+REc8zbntF0Xh
+        PMsHgAYRdEz7AsgKWEiMANlFrwEXLswWM0cG5U54+0/rmmwBo3XX+Od+qPuxrLNBEPMtwE28wt+nMX/l
+        OvdHDsDjHe2ar2jX/L/kcAOEuo6+wH+clwAAAABJRU5ErkJggg==
+</value>
+  </data>
+  <metadata name="toolTipMatchCase.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>249, 17</value>
+  </metadata>
+  <data name="cbFindPrev.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAO
+        wwAADsMBx2+oZAAAAKlJREFUOE+1krENwyAQRRkpM9BTpc08tPYAmYWeytmEREK0l3x0pxBiY2zLX/o6
+        ge79A4SqFWO8pJTCx1Q4YJ9bliXwbXSkrndCPQr/mFv/VcNzPjcA6rlC5YHRr1ohzjkyxpDWOlfvfTtE
+        QDGgaXrQM7xyxRr7jLWFRkwGLMa6K4BPlIHNJ5DrWGtzgLj5BqIaRsXEwsswVAYw3PelS0nILlgEcDe8
+        LqXesOyDraOJECgAAAAASUVORK5CYII=
+</value>
+  </data>
+  <metadata name="toolTipFindPrevious.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>399, 17</value>
+  </metadata>
 </root>

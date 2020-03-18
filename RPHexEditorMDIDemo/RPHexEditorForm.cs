@@ -152,12 +152,19 @@ namespace RPHexEditorMDIDemo
 		public void Find()
 		{
 			if (!_quickFindWnd.Visible)
-			{				
+			{
 				_quickFindWnd.Show();
+				_quickFindWnd.BringToFront();
 				RPHexEditorForm_ResizeEnd(this, EventArgs.Empty);
 			}
+		}
 
-			_quickFindWnd.BringToFront();
+		public void FindNext()
+		{
+			if (_quickFindWnd.SearchText == null || _quickFindWnd.SearchText == string.Empty)
+				Find();
+			else
+				OnFindNext(this, EventArgs.Empty);
 		}
 
 		private void OnFindNext(object sender, EventArgs e)
@@ -172,8 +179,9 @@ namespace RPHexEditorMDIDemo
 
 			RPHexEditor.FindByteDataOption fbdo = rpHexEditor.FindDataOption;
 			fbdo.SearchText = _quickFindWnd.SearchText; ;
-			fbdo.SearchDirection = RPHexEditor.SearchDirection.Direction_Down;
+			fbdo.SearchDirection = _quickFindWnd.FindPrevious ? RPHexEditor.SearchDirection.Direction_Up : RPHexEditor.SearchDirection.Direction_Down;
 			fbdo.SearchStartIndex = rpHexEditor.BytePosition;
+			fbdo.MatchCase = _quickFindWnd.MatchCase;
 
 			rpHexEditor.Find();
 		}
@@ -353,6 +361,14 @@ namespace RPHexEditorMDIDemo
 				tsmUndo.Enabled = rpHexEditor.IsCmdUndoAvailable;
 				tsbUndo.Enabled = tsmUndo.Enabled;
 			}
+
+			ToolStripMenuItem tsmFind = ((MDIDemo)MdiParent).GetTSM_Find;
+			if (tsmFind.Enabled != rpHexEditor.IsCmdFindAvailable)
+				tsmFind.Enabled = rpHexEditor.IsCmdFindAvailable;
+
+			ToolStripMenuItem tsmFindNext = ((MDIDemo)MdiParent).GetTSM_FindNext;
+			if (tsmFindNext.Enabled != rpHexEditor.IsCmdFindAvailable)
+				tsmFindNext.Enabled = rpHexEditor.IsCmdFindAvailable;
 		}
 
 		private void RPHexEditorForm_ResizeEnd(object sender, EventArgs e)
