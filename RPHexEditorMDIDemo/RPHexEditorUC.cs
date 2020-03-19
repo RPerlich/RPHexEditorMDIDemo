@@ -60,6 +60,7 @@ namespace RPHexEditor
 		private bool _autoBytesPerLine = false;
 		private bool _drawCharacters = true;
 		private bool _drawAddressLine = true;
+		private bool _drawByteGroups = false;
 		private bool _caretVisible = false;
 		private bool _showChangesWithColor = false;
 		private string _lineAddressFormat = "X8";
@@ -68,6 +69,7 @@ namespace RPHexEditor
 		private int _iHexMaxVBytes;
 		private int _iHexMaxBytes;
 		private int _bytesPerLine = 16;
+		private int _byteGroupSize = 4;
 		private long _scrollVmin;
 		private long _scrollVmax;
 		private long _scrollVpos;
@@ -271,8 +273,36 @@ namespace RPHexEditor
 				_bytesPerLine = value;
 				OnBytesPerLineChanged(EventArgs.Empty);
 
-				this.AdjustWindowSize();
+				AdjustWindowSize();
 				Invalidate();
+			}
+		}
+
+		[DefaultValue(4), Category("HexEditor"), Description("Get or set the group size of bytes per line.")]
+		public int ByteGroupSize
+		{
+			get { return _byteGroupSize; }
+			set
+			{
+				if (_byteGroupSize == value || value < 2 || value >= BytesPerLine)
+					return;
+
+				_byteGroupSize = value;
+				Invalidate();
+			}
+		}
+
+		[DefaultValue(false), Category("HexEditor"), Description("Get or set the visibility of the byte groups.")]
+		public bool ViewByteGroups
+		{
+			get { return _drawByteGroups; }
+			set
+			{
+				if (_drawByteGroups != value)
+				{
+					_drawByteGroups = value;
+					Invalidate();
+				}
 			}
 		}
 
@@ -321,7 +351,7 @@ namespace RPHexEditor
 		}
 
 		[DefaultValue(typeof(Color), "IndianRed"), Category("HexEditor"), Description("Get or set the color for changed values.")]
-		public Color ChangesForColor
+		public Color ChangesForeColor
 		{
 			get { return _changedForColor; }
 			set { _changedForColor = value; Invalidate(); }
@@ -520,6 +550,22 @@ namespace RPHexEditor
 			e.Graphics.FillRectangle(new SolidBrush(AddressLineColor), _recAddressLine);
 			e.Graphics.FillRectangle(new SolidBrush(HexadecimalLineColor), _recHexLine);
 			e.Graphics.FillRectangle(new SolidBrush(CharacterLineColor), _recCharLine);
+
+			if (!ViewByteGroups)
+				return;
+
+			int i = 0;
+			Rectangle[] hex_Tiles = GetHexTileRects(_recHexLine);
+
+			foreach (Rectangle r in hex_Tiles)
+			{
+				if (i % 2 == 0)
+					e.Graphics.FillRectangle(new SolidBrush(HexadecimalLineColor), r);
+				else
+					e.Graphics.FillRectangle(new SolidBrush(ChangeColorBrightness(HexadecimalLineColor, 10)), r);
+
+				i++;
+			}
 		}
 
 		protected override void OnPaint(PaintEventArgs e)
@@ -2145,7 +2191,7 @@ namespace RPHexEditor
 						this.ContextMenuStrip = _internalContextMenu;
 			}
 		}
-
+		
 		private void InternalContextMenuCut_Click(object sender, EventArgs e)
 		{
 			Cut();
@@ -2214,6 +2260,28 @@ namespace RPHexEditor
 			}
 
 			return bRet;
+		}
+
+		private Color ChangeColorBrightness(Color color, int factor)
+		{
+			int R = (color.R + factor > 255) ? 255 : color.R + factor;
+			int G = (color.G + factor > 255) ? 255 : color.G + factor;
+			int B = (color.B + factor > 255) ? 255 : color.B + factor;
+
+			return Color.FromArgb(R, G, B);
+		}
+
+		private Rectangle[] GetHexTileRects(Rectangle rect)
+		{
+			int _minTileWidth = (int)Math.Round((_charSize.Width * 3 * ByteGroupSize));
+			int n = rect.Width / _minTileWidth;
+
+			Rectangle[] _tileRects = new Rectangle[n];
+
+			for (int i = 0; i < n; ++i)
+				_tileRects[i] = new Rectangle(rect.X + (_minTileWidth * i), rect.Y, _minTileWidth, rect.Height);
+
+			return _tileRects;
 		}
 	}
 

@@ -24,6 +24,7 @@
 			this.rpHexEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+			this.rpHexEditor.AutomaticBytesPerLine = true;
 			this.rpHexEditor.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
 			this.rpHexEditor.Font = new System.Drawing.Font("Consolas", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.rpHexEditor.ImeMode = System.Windows.Forms.ImeMode.On;
@@ -33,6 +34,7 @@
 			this.rpHexEditor.ShowChangesWithColor = true;
 			this.rpHexEditor.Size = new System.Drawing.Size(477, 365);
 			this.rpHexEditor.TabIndex = 0;
+			this.rpHexEditor.ViewByteGroups = true;
 			this.rpHexEditor.ReadOnlyChanged += new System.EventHandler(this.RPHexEditor_ReadOnlyChanged);
 			this.rpHexEditor.SelectionChanged += new System.EventHandler(this.RPHexEditor_SelectionChanged);
 			this.rpHexEditor.InsertModeChanged += new System.EventHandler(this.RPHexEditor_InsertModeChanged);
