@@ -13,9 +13,9 @@ namespace RPHexEditor
 		public RPHexEditorUC()
 		{
 			vScrollBar = new VScrollBar();
-			Controls.Add(this.vScrollBar);
+			Controls.Add(vScrollBar);
 			hScrollBar = new HScrollBar();
-			Controls.Add(this.hScrollBar);
+			Controls.Add(hScrollBar);
 			
 			vScrollBar.Scroll += new ScrollEventHandler(VScrollBar_Scroll);
 			hScrollBar.Scroll += new ScrollEventHandler(HScrollBar_Scroll);
@@ -23,7 +23,7 @@ namespace RPHexEditor
 			InitializeComponent();
 
 			Font = _font;
-			BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+			BorderStyle = BorderStyle.Fixed3D;
 
 			SetStyle(ControlStyles.AllPaintingInWmPaint, true);
 			SetStyle(ControlStyles.UserPaint, true);
@@ -217,6 +217,18 @@ namespace RPHexEditor
 		public long BytePosition
 		{
 			get { return _bytePos; }
+			set
+			{
+				if (!IsCmdGoToAvailable)
+					return;
+
+				if (_bytePos == value || value < 0 || value > ByteDataSource.Length)
+					return;
+
+				RemoveSelection();
+				_bytePos = value;
+				ScrollByteIntoView(_bytePos);
+			}
 		}
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -460,7 +472,7 @@ namespace RPHexEditor
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool IsCmdCopyAvailable
 		{
-			get { return (ByteDataSource != null && this.HasSelection() && this.Enabled); }
+			get { return (ByteDataSource != null && HasSelection() && Enabled); }
 		}
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -470,7 +482,7 @@ namespace RPHexEditor
 			{
 				DataObject clip_DO = Clipboard.GetDataObject() as DataObject;
 
-				if (clip_DO == null || ByteDataSource == null || ReadOnly || !this.Enabled)
+				if (clip_DO == null || ByteDataSource == null || ReadOnly || !Enabled)
 					return false;
 
 				return (clip_DO.GetDataPresent("rawbinary") || clip_DO.GetDataPresent(typeof(string)));
@@ -480,25 +492,31 @@ namespace RPHexEditor
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool IsCmdCutAvailable
 		{
-			get { return (ByteDataSource != null && !this.ReadOnly && this.HasSelection() && this.Enabled); }
+			get { return (ByteDataSource != null && !ReadOnly && HasSelection() && Enabled); }
 		}
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool IsCmdSelectAvailable
 		{
-			get { return (ByteDataSource != null && this.Enabled); }
+			get { return (ByteDataSource != null && Enabled); }
 		}
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool	IsCmdFindAvailable
 		{
-			get { return (ByteDataSource != null && this.Enabled && FindDataOption != null && _findData != null); }
+			get { return (ByteDataSource != null && Enabled && FindDataOption != null && _findData != null); }
 		}
 
 		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		public bool IsCmdFindNextAvailable
 		{
-			get { return (ByteDataSource != null && this.Enabled && FindDataOption != null && _findData != null); }
+			get { return (ByteDataSource != null && Enabled && FindDataOption != null && _findData != null); }
+		}
+
+		[Browsable(false), DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		public bool IsCmdGoToAvailable
+		{
+			get { return (ByteDataSource != null && Enabled); }
 		}
 
 		#endregion

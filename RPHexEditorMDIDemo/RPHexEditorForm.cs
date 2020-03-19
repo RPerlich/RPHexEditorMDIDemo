@@ -188,6 +188,11 @@ namespace RPHexEditorMDIDemo
 
 		public bool IsSearching { get; set; }
 
+		public void GoTo()
+		{
+			rpHexEditor.BytePosition = 5;	// very simple test implementation
+		}
+
 		public bool IsChanged()
 		{
 			return rpHexEditor.ByteDataSource.IsChanged();
@@ -369,6 +374,10 @@ namespace RPHexEditorMDIDemo
 			ToolStripMenuItem tsmFindNext = ((MDIDemo)MdiParent).GetTSM_FindNext;
 			if (tsmFindNext.Enabled != rpHexEditor.IsCmdFindAvailable)
 				tsmFindNext.Enabled = rpHexEditor.IsCmdFindAvailable;
+
+			ToolStripMenuItem tsmGoTo = ((MDIDemo)MdiParent).GetTSM_GoTo;
+			if (tsmGoTo.Enabled != rpHexEditor.IsCmdGoToAvailable)
+				tsmGoTo.Enabled = rpHexEditor.IsCmdGoToAvailable;
 		}
 
 		private void RPHexEditorForm_ResizeEnd(object sender, EventArgs e)

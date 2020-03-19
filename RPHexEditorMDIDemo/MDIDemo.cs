@@ -10,7 +10,7 @@ namespace RPHexEditorMDIDemo
 		public MDIDemo()
 		{
 			InitializeComponent();
-			this.Size = new System.Drawing.Size(1024, 786);
+			Size = new System.Drawing.Size(1024, 786);
 
 			_timer = new Timer();
 			_timer.Tick += new EventHandler(OnClientStateUpdate);
@@ -26,8 +26,8 @@ namespace RPHexEditorMDIDemo
 				if (components != null)
 					components.Dispose();
 
-				this._timer.Stop();
-				this._timer.Dispose();
+				_timer.Stop();
+				_timer.Dispose();
 			}
 
 			base.Dispose(disposing);
@@ -35,72 +35,77 @@ namespace RPHexEditorMDIDemo
 
 		public ToolStripStatusLabel GetStatusBarControl_INS
 		{
-			get { return this.toolStripStatusINS; }
+			get { return toolStripStatusINS; }
 		}
 
 		public ToolStripStatusLabel GetStatusBarControl_RW
 		{
-			get { return this.toolStripStatusRW; }
+			get { return toolStripStatusRW; }
 		}
 
 		public ToolStripStatusLabel GetStatusBarControl_Position
 		{
-			get { return this.toolStripStatusPosition; }
+			get { return toolStripStatusPosition; }
 		}
 
 		public ToolStripMenuItem GetTSM_Undo
 		{
-			get { return this.undoToolStripMenuItem; }
+			get { return undoToolStripMenuItem; }
 		}
 
 		public ToolStripMenuItem GetTSM_Copy
 		{
-			get { return this.copyToolStripMenuItem; }
+			get { return copyToolStripMenuItem; }
 		}
 
 		public ToolStripMenuItem GetTSM_Cut
 		{
-			get { return this.cutToolStripMenuItem; }
+			get { return cutToolStripMenuItem; }
 		}
 
 		public ToolStripMenuItem GetTSM_Paste
 		{
-			get { return this.pasteToolStripMenuItem; }
-		}
-
-		public ToolStripMenuItem GetTSM_SelectAll
-		{
-			get { return this.selectAllToolStripMenuItem; }
+			get { return pasteToolStripMenuItem; }
 		}
 
 		public ToolStripMenuItem GetTSM_Find
 		{
-			get { return this.findToolStripMenuItem; }
+			get { return findToolStripMenuItem; }
 		}
 
 		public ToolStripMenuItem GetTSM_FindNext
 		{
-			get { return this.findNextToolStripMenuItem; }
+			get { return findNextToolStripMenuItem; }
+		}
+
+		public ToolStripMenuItem GetTSM_SelectAll
+		{
+			get { return selectAllToolStripMenuItem; }
+		}
+
+		public ToolStripMenuItem GetTSM_GoTo
+		{
+			get { return goToToolStripMenuItem; }
 		}
 
 		public ToolStripButton GetTSB_Undo
 		{
-			get { return this.undoToolStripButton; }
+			get { return undoToolStripButton; }
 		}
 
 		public ToolStripButton GetTSB_Copy
 		{
-			get { return this.copyToolStripButton; }
+			get { return copyToolStripButton; }
 		}
 
 		public ToolStripButton GetTSB_Cut
 		{
-			get { return this.cutToolStripButton; }
+			get { return cutToolStripButton; }
 		}
 
 		public ToolStripButton GetTSB_Paste
 		{
-			get { return this.pasteToolStripButton; }
+			get { return pasteToolStripButton; }
 		}
 
 		private void ShowNewForm(object sender, EventArgs e)
@@ -206,6 +211,22 @@ namespace RPHexEditorMDIDemo
 			}
 		}
 
+		private void SelectAllToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
+
+			if (child != null)
+				child.SelectAll();
+		}
+
+		private void GoToToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
+
+			if (child != null)
+				child.GoTo();
+		}
+
 		private void ToolBarToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			toolStrip.Visible = toolBarToolStripMenuItem.Checked;
@@ -244,14 +265,6 @@ namespace RPHexEditorMDIDemo
 			}
 		}
 
-		private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
-
-			if (child != null)
-				child.SelectAll();
-		}
-
 		private void ToggleStatusBarControl_INS()
 		{
 			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
@@ -267,39 +280,40 @@ namespace RPHexEditorMDIDemo
 			}
 		}
 
-		private void toolStripStatusINS_DoubleClick(object sender, EventArgs e)
+		private void ToolStripStatusINS_DoubleClick(object sender, EventArgs e)
 		{
 			ToggleStatusBarControl_INS();
 		}
 
-		private void optionsToolStripMenuItem_Click(object sender, EventArgs e)
+		private void OptionsToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			MDIDemoOption frm = new MDIDemoOption();
 			frm.ShowDialog();
 		}
 
-		private void OnClientStateUpdate(Object myObject, EventArgs myEventArgs)
+		private void OnClientStateUpdate(object myObject, EventArgs myEventArgs)
 		{
 			if (MdiChildren.Length == 0)
 			{
+				undoToolStripMenuItem.Enabled = false;
+				redoToolStripMenuItem.Enabled = false;
 				copyToolStripMenuItem.Enabled = false;
 				cutToolStripMenuItem.Enabled = false;
 				pasteToolStripMenuItem.Enabled = false;
-				selectAllToolStripMenuItem.Enabled = false;
-				undoToolStripMenuItem.Enabled = false;
-				redoToolStripMenuItem.Enabled = false;
 				findToolStripMenuItem.Enabled = false;
 				findNextToolStripMenuItem.Enabled = false;
+				selectAllToolStripMenuItem.Enabled = false;
+				goToToolStripMenuItem.Enabled = false;
+
 				copyToolStripButton.Enabled = false;
 				cutToolStripButton.Enabled = false;
 				pasteToolStripButton.Enabled = false;
 				undoToolStripButton.Enabled = false;
-				
 			}
 
 			saveToolStripMenuItem.Enabled = MdiChildren.Length > 0;
 			saveAsToolStripMenuItem.Enabled = MdiChildren.Length > 0;
 			saveToolStripButton.Enabled = saveAsToolStripMenuItem.Enabled;
-		}
+		}		
 	}
 }
