@@ -647,24 +647,22 @@ namespace RPHexEditor
 		}
 
 		protected override void OnMouseMove(MouseEventArgs e)
-		{
-			Point p = new Point(e.X, e.Y);
-			
+		{			
 			if (_lMouseDown)
 			{
+				Point p = new Point(e.X, e.Y);
 				long oldBytePos = _bytePos;
-				
+				long oldSelStart = SelectionStart;
+				long oldSelEnd = SelectionEnd;
+
 				GetBytePosFromPoint(p, ref _bytePos, ref _isNibble);
 
 				_bytePos = (_bytePos > _byteData.Length - 1) ? _byteData.Length - 1 : _bytePos;
 				
 				if (SelectionStart == -1)
-				{
 					SelectionStart = _bytePos;
-					SelectionEnd = _bytePos;
-				}
-				else
-					SelectionEnd = _bytePos;
+				
+				SelectionEnd = _bytePos;
 
 				if (_bytePos != oldBytePos && _caretVisible)
 				{
@@ -672,8 +670,11 @@ namespace RPHexEditor
 					CreateCaret();
 				}
 
-				Invalidate();
-				OnSelectionChanged(EventArgs.Empty);				
+				if (oldSelStart != SelectionStart || oldSelEnd != SelectionEnd)
+				{
+					Invalidate();
+					OnSelectionChanged(EventArgs.Empty);
+				}
 			}
 		}
 
@@ -2294,10 +2295,16 @@ namespace RPHexEditor
 			int _minTileWidth = (int)Math.Round((_charSize.Width * 3 * ByteGroupSize));
 			int n = rect.Width / _minTileWidth;
 
+			if (_minTileWidth * n < rect.Width)
+				n++;
+
 			Rectangle[] _tileRects = new Rectangle[n];
 
 			for (int i = 0; i < n; ++i)
 				_tileRects[i] = new Rectangle(rect.X + (_minTileWidth * i), rect.Y, _minTileWidth, rect.Height);
+
+			if (_tileRects[n - 1].X + _tileRects[n - 1].Width - rect.Left > rect.Width)
+				_tileRects[n - 1].Width = rect.Width - (_tileRects[n - 1].X - rect.Left);
 
 			return _tileRects;
 		}

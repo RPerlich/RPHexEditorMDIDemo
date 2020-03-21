@@ -43,11 +43,11 @@ namespace RPHexEditorMDIDemo
 					components.Dispose();
 				}
 
-				this._timer.Stop();
-				this._timer.Dispose();
+				_timer.Stop();
+				_timer.Dispose();
 
-				if (this._fileByteData != null)
-					this._fileByteData.Dispose();
+				if (_fileByteData != null)
+					_fileByteData.Dispose();
 			}
 
 			base.Dispose(disposing);
