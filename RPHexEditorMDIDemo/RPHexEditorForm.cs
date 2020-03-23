@@ -1,5 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Drawing;
+using System.Drawing.Printing;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
@@ -11,13 +13,14 @@ namespace RPHexEditorMDIDemo
 		private RPHexEditor.FileByteData _fileByteData;
 		private RPHexEditor.MemoryByteData _memoryByteData;
 		private RPQuickFind _quickFindWnd;
-
+		private PrintDocument _PrintDoc;
+		private int iPrintPage = 1;
 		private Timer _timer = null;
 
 		public RPHexEditorForm()
 		{
 			InitializeComponent();
-			Size = new System.Drawing.Size(640, 480);
+			Size = new Size(640, 480);
 
 			_quickFindWnd = new RPQuickFind();
 			_quickFindWnd.TopLevel = false;
@@ -32,6 +35,11 @@ namespace RPHexEditorMDIDemo
 			_timer.Tick += new EventHandler(OnClientStateUpdate);
 			_timer.Interval = 500;
 			_timer.Start();
+
+			_PrintDoc = new PrintDocument();
+			_PrintDoc.BeginPrint += OnPrintDoc_BeginPrint;
+			_PrintDoc.EndPrint += OnPrintDoc_EndPrint;
+			_PrintDoc.PrintPage += OnPrintDoc_PrintPage;
 		}
 
 		protected override void Dispose(bool disposing)
@@ -48,6 +56,9 @@ namespace RPHexEditorMDIDemo
 
 				if (_fileByteData != null)
 					_fileByteData.Dispose();
+
+				if (_PrintDoc != null)
+					_PrintDoc.Dispose();
 			}
 
 			base.Dispose(disposing);
@@ -273,6 +284,50 @@ namespace RPHexEditorMDIDemo
 			rpHexEditor.InsertMode = mode;
 		}
 
+		public void Print()
+		{
+			Margins margins = _PrintDoc.DefaultPageSettings.Margins;
+			Rectangle marginBounds = _PrintDoc.DefaultPageSettings.Bounds;
+			marginBounds.X += margins.Left;
+			marginBounds.Y += margins.Top;
+			marginBounds.Width -= margins.Right;
+			marginBounds.Width -= margins.Left;
+			marginBounds.Height -= margins.Bottom;
+			marginBounds.Height -= margins.Top;
+
+			using (var printDlg = new PrintDialog())
+			{
+				printDlg.Document = _PrintDoc;
+				printDlg.AllowSomePages = true;
+				printDlg.PrinterSettings.FromPage = 1;
+				printDlg.PrinterSettings.ToPage = 1;
+				printDlg.PrinterSettings.MinimumPage = 1;
+				printDlg.PrinterSettings.MaximumPage = rpHexEditor.PrintGetMaxPrintPages(marginBounds);
+
+				if (printDlg.ShowDialog(this) == DialogResult.OK)
+				{
+					_PrintDoc.PrinterSettings = printDlg.PrinterSettings;
+
+					iPrintPage = 1;
+
+					if (_PrintDoc.PrinterSettings.PrintRange == PrintRange.SomePages)
+						iPrintPage = _PrintDoc.PrinterSettings.FromPage;
+
+					_PrintDoc.Print();
+				}
+			}
+		}
+
+		public void PrintPreview()
+		{
+			using (var printPreview = new PrintPreviewDialog())
+			{
+				printPreview.Size = new Size(640, 480);
+				printPreview.Document = _PrintDoc;
+				printPreview.ShowDialog(this);
+			}
+		}
+
 		protected void OnFileByteDataDataChanged(object sender, EventArgs e)
 		{
 			System.Diagnostics.Debug.WriteLine("OnFileByteDataDataChanged fired");
@@ -283,25 +338,25 @@ namespace RPHexEditorMDIDemo
 			System.Diagnostics.Debug.WriteLine("OnFileByteDataDataLengthChanged fired");
 		}
 
-		private void RPHexEditor_ReadOnlyChanged(object sender, System.EventArgs e)
+		private void RPHexEditor_ReadOnlyChanged(object sender, EventArgs e)
 		{
 			ToolStripStatusLabel tsl = ((MDIDemo)MdiParent).GetStatusBarControl_RW;
 			tsl.Text = rpHexEditor.ReadOnly ? "RO" : "R/W";
 		}
 
-		private void RPHexEditor_InsertModeChanged(object sender, System.EventArgs e)
+		private void RPHexEditor_InsertModeChanged(object sender, EventArgs e)
 		{
 			ToolStripStatusLabel tsl = ((MDIDemo)MdiParent).GetStatusBarControl_INS;
 			tsl.Text = (rpHexEditor.InsertMode == InsertKeyMode.Insert) ? "INS" : "OVR";
 		}
 
-		private void RPHexEditor_BytePositionChanged(object sender, System.EventArgs e)
+		private void RPHexEditor_BytePositionChanged(object sender, EventArgs e)
 		{
 			ToolStripStatusLabel tsl = ((MDIDemo)MdiParent).GetStatusBarControl_Position;
 			tsl.Text = "Ln " + rpHexEditor.BytePositionLine.ToString() + ", Col " + rpHexEditor.BytePositionColumn.ToString();
 		}
 
-		private void RPHexEditor_SelectionChanged(object sender, System.EventArgs e)
+		private void RPHexEditor_SelectionChanged(object sender, EventArgs e)
 		{
 			System.Diagnostics.Debug.WriteLine("rpHexEditor_SelectionChanged fired");
 		}
@@ -321,7 +376,7 @@ namespace RPHexEditorMDIDemo
 			System.Diagnostics.Debug.WriteLine("Find: Found position at {0:X}", e1.FoundPosition);
 		}
 
-		private void OnClientStateUpdate(Object myObject, EventArgs myEventArgs)
+		private void OnClientStateUpdate(object myObject, EventArgs myEventArgs)
 		{
 			if (MdiParent == null)
 				return;
@@ -391,6 +446,34 @@ namespace RPHexEditorMDIDemo
 					_quickFindWnd.Top, _quickFindWnd.Width, 
 					_quickFindWnd.Height, true);
 			}
+		}
+
+		private void OnPrintDoc_BeginPrint(object sender, PrintEventArgs e)
+		{
+			_PrintDoc.DocumentName = GetFileName();
+			System.Diagnostics.Debug.WriteLine("Start printing...");
+		}
+
+		private void OnPrintDoc_EndPrint(object sender, PrintEventArgs e)
+		{
+			iPrintPage = 1;
+			System.Diagnostics.Debug.WriteLine("End printing...");
+		}
+
+		private void OnPrintDoc_PrintPage(object sender, PrintPageEventArgs e)
+		{
+			bool bHasMorePages = false;
+
+			if (_PrintDoc.PrinterSettings.PrintRange == PrintRange.SomePages)
+			{
+				if (iPrintPage > _PrintDoc.PrinterSettings.ToPage)
+					return;
+			}
+
+			System.Diagnostics.Debug.WriteLine("Print page -> {0}", iPrintPage);
+			rpHexEditor.Print(iPrintPage, e, ref bHasMorePages);
+			e.HasMorePages = bHasMorePages;
+			if (bHasMorePages) iPrintPage++;
 		}
 	}
 

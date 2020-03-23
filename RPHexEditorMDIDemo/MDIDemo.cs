@@ -153,6 +153,22 @@ namespace RPHexEditorMDIDemo
 				child.CommitChangesAs();
 		}
 
+		private void PrintToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
+
+			if (child != null)
+				child.Print();
+		}
+
+		private void PrintPreviewToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RPHexEditorForm child = (RPHexEditorForm)this.ActiveMdiChild;
+
+			if (child != null)
+				child.PrintPreview();
+		}
+
 		private void ExitToolsStripMenuItem_Click(object sender, EventArgs e)
 		{
 			this.Close();
@@ -314,6 +330,9 @@ namespace RPHexEditorMDIDemo
 			saveToolStripMenuItem.Enabled = MdiChildren.Length > 0;
 			saveAsToolStripMenuItem.Enabled = MdiChildren.Length > 0;
 			saveToolStripButton.Enabled = saveAsToolStripMenuItem.Enabled;
-		}		
+			printToolStripMenuItem.Enabled = saveAsToolStripMenuItem.Enabled;
+			printPreviewToolStripMenuItem.Enabled = saveAsToolStripMenuItem.Enabled;
+			printToolStripButton.Enabled = saveAsToolStripMenuItem.Enabled;
+		}
 	}
 }

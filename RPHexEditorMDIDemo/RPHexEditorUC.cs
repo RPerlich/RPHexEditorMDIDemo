@@ -65,9 +65,9 @@ namespace RPHexEditor
 		private bool _showChangesWithColor = false;
 		private string _lineAddressFormat = "X8";
 		private string _lineByteFormat = "X2";
-		private int _iHexMaxHBytes;
-		private int _iHexMaxVBytes;
-		private int _iHexMaxBytes;
+		private int _iHexMaxHBytes, _iPrintHexMaxHBytes;
+		private int _iHexMaxVBytes, _iPrintHexMaxVBytes;
+		private int _iHexMaxBytes, _iPrintHexMaxBytes;
 		private int _bytesPerLine = 16;
 		private int _byteGroupSize = 4;
 		private long _scrollVmin;
@@ -79,11 +79,11 @@ namespace RPHexEditor
 
 		private Font _font = new Font("Consolas", 10);
 		private StringFormat _stringFormat;
-		private Rectangle _rectContent;
-		private Rectangle _recAddressLine;
-		private Rectangle _recHexLine;
-		private Rectangle _recCharLine;
-		private SizeF _charSize;
+		private Rectangle _rectContent, _rectPrintContent;
+		private Rectangle _recAddressLine, _recPrintAddressLine;
+		private Rectangle _recHexLine, _recPrintHexLine;
+		private Rectangle _recCharLine, _recPrintCharsLine;
+		private SizeF _charSize, _charPrintSize;
 		private Color _addressLineColor = Color.FloralWhite;
 		private Color _hexLineColor = Color.AliceBlue;
 		private Color _charLineColor = SystemColors.Control;
@@ -96,8 +96,8 @@ namespace RPHexEditor
 		private long _bytePos = 0;
 		private bool _isNibble = false;
 		private bool _lMouseDown = false;
-		private long _startByte = 0;
-		private long _endByte = 0;
+		private long _startByte, _startPrintByte = 0;
+		private long _endByte, _endPrintByte = 0;
 		private bool _isShiftActive = false;
 		private long _thumbTrackVPosition = 0;
 		private long _thumbTrackHPosition = 0;
@@ -764,6 +764,14 @@ namespace RPHexEditor
 			OnBytesPerLineChanged(EventArgs.Empty);
 		}
 
+		void SetHorizontalByteCountPrint(int value)
+		{
+			if (_iPrintHexMaxHBytes == value)
+				return;
+
+			_iPrintHexMaxHBytes = value;
+		}
+
 		private void AdjustWindowSize()
 		{
 			bool vScrollNeeded = false;
@@ -773,17 +781,17 @@ namespace RPHexEditor
 
 			using (var graphics = this.CreateGraphics())
 			{
-				this._charSize = graphics.MeasureString("W", this.Font, 100, _stringFormat);
+				_charSize = graphics.MeasureString("W", Font, 100, _stringFormat);
 			}
 
 			if (_byteData != null)
 			{
-				int iVisibleRows = (int)Math.Floor((double)_rectContent.Height / (double)this._charSize.Height);
+				int iVisibleRows = (int)Math.Floor((double)_rectContent.Height / (double)_charSize.Height);
 				vScrollNeeded = (_byteData.Length / _iHexMaxHBytes - iVisibleRows) >= 0;
 
-				double clientSize = _rectContent.Width - this._charSize.Width * 9;
-				clientSize -= _iHexMaxHBytes * this._charSize.Width * 3 + this._charSize.Width;
-				if (_drawCharacters) clientSize -= _iHexMaxHBytes * this._charSize.Width;
+				double clientSize = _rectContent.Width - _charSize.Width * 9;
+				clientSize -= _iHexMaxHBytes * _charSize.Width * 3 + _charSize.Width;
+				if (_drawCharacters) clientSize -= _iHexMaxHBytes * _charSize.Width;
 				if (vScrollNeeded) clientSize -= vScrollBar.Width;
 				hScrollNeeded = clientSize <= 0;
 			}
@@ -802,14 +810,14 @@ namespace RPHexEditor
 
 			if (_drawAddressLine)
 			{
-				_recAddressLine = new Rectangle(_rectContent.X - (int)this._charSize.Width * (int)_scrollHpos,
+				_recAddressLine = new Rectangle(_rectContent.X - (int)_charSize.Width * (int)_scrollHpos,
 											_rectContent.Y,
-											(int)(this._charSize.Width * 9), _rectContent.Height);
+											(int)(_charSize.Width * 9), _rectContent.Height);
 			}
 			else
 			{
 				_recAddressLine = Rectangle.Empty;
-				_recAddressLine.X = _rectContent.X - (int)this._charSize.Width * (int)_scrollHpos;
+				_recAddressLine.X = _rectContent.X - (int)_charSize.Width * (int)_scrollHpos;
 			}
 
 			_recHexLine = new Rectangle(_recAddressLine.X + _recAddressLine.Width,
@@ -819,7 +827,7 @@ namespace RPHexEditor
 
 			if (_autoBytesPerLine)
 			{
-				int hmax = (int)Math.Floor((double)_recHexLine.Width / (double)this._charSize.Width);
+				int hmax = (int)Math.Floor((double)_recHexLine.Width / (double)_charSize.Width);
 
 				if (_drawCharacters)
 				{
@@ -836,23 +844,93 @@ namespace RPHexEditor
 					else
 						SetHorizontalByteCount(1);
 				}
-				_recHexLine.Width = (int)Math.Floor(((double)_iHexMaxHBytes) * this._charSize.Width * 3 + (2 * this._charSize.Width));
+				_recHexLine.Width = (int)Math.Floor(((double)_iHexMaxHBytes) * _charSize.Width * 3 + (2 * _charSize.Width));
 			}
 			else
 			{
 				SetHorizontalByteCount(_bytesPerLine);
-				_recHexLine.Width = (int)Math.Floor(((double)_iHexMaxHBytes) * this._charSize.Width * 3 + this._charSize.Width);
+				_recHexLine.Width = (int)Math.Floor(((double)_iHexMaxHBytes) * _charSize.Width * 3 + _charSize.Width);
 			}
 
 
 			_recCharLine = (_drawCharacters) ?
-				new Rectangle(_recHexLine.X + _recHexLine.Width, _recHexLine.Y, (int)(this._charSize.Width * _iHexMaxHBytes), _recHexLine.Height) :
+				new Rectangle(_recHexLine.X + _recHexLine.Width, _recHexLine.Y, (int)(_charSize.Width * _iHexMaxHBytes), _recHexLine.Height) :
 				Rectangle.Empty;
 
-			_iHexMaxVBytes = (int)Math.Floor((double)_recHexLine.Height / (double)this._charSize.Height);
+			_iHexMaxVBytes = (int)Math.Floor((double)_recHexLine.Height / (double)_charSize.Height);
 			_iHexMaxBytes = _iHexMaxHBytes * _iHexMaxVBytes;
 
 			UpdateScrollBars();
+		}
+
+		void AdjustWindowSizePrint(Rectangle rect)
+		{
+			_rectPrintContent = rect;
+
+			using (var graphics = this.CreateGraphics())
+			{
+				_charPrintSize = graphics.MeasureString("W", Font, 100, _stringFormat);
+			}
+
+			if (_byteData != null)
+			{
+				int iVisibleRows = (int)Math.Floor((double)_rectPrintContent.Height / (double)_charPrintSize.Height);
+
+				double clientSize = _rectPrintContent.Width - _charPrintSize.Width * 9;
+				clientSize -= _iPrintHexMaxHBytes * _charPrintSize.Width * 3 + _charPrintSize.Width;
+				if (_drawCharacters) clientSize -= _iPrintHexMaxHBytes * _charPrintSize.Width;
+			}
+
+			if (_drawAddressLine)
+			{
+				_recPrintAddressLine = new Rectangle(_rectPrintContent.X, 
+													_rectPrintContent.Y,
+													(int)(_charPrintSize.Width * 9), 
+													_rectPrintContent.Height);
+			}
+			else
+			{
+				_recPrintAddressLine = Rectangle.Empty;				
+			}
+
+			_recPrintHexLine = new Rectangle(_recPrintAddressLine.X + _recPrintAddressLine.Width,
+									_recPrintAddressLine.Y,
+									_rectPrintContent.Width - _recPrintAddressLine.Width,
+									_rectPrintContent.Height);
+
+			if (_autoBytesPerLine)
+			{
+				int hmax = (int)Math.Floor((double)_recPrintHexLine.Width / (double)_charPrintSize.Width);
+
+				if (_drawCharacters)
+				{
+					hmax -= 2;
+					if (hmax > 1)
+						SetHorizontalByteCountPrint((int)Math.Floor((double)hmax / 4));
+					else
+						SetHorizontalByteCountPrint(1);
+				}
+				else
+				{
+					if (hmax > 1)
+						SetHorizontalByteCountPrint((int)Math.Floor((double)hmax / 3));
+					else
+						SetHorizontalByteCountPrint(1);
+				}
+				_recPrintHexLine.Width = (int)Math.Floor(((double)_iPrintHexMaxHBytes) * _charPrintSize.Width * 3 + (2 * _charPrintSize.Width));
+			}
+			else
+			{
+				SetHorizontalByteCountPrint(_bytesPerLine);
+				_recPrintHexLine.Width = (int)Math.Floor(((double)_iPrintHexMaxHBytes) * _charPrintSize.Width * 3 + _charPrintSize.Width);
+			}
+
+			_recPrintCharsLine = (_drawCharacters) ?
+				new Rectangle(_recPrintHexLine.X + _recPrintHexLine.Width, _recPrintHexLine.Y, (int)(_charPrintSize.Width * _iPrintHexMaxHBytes), _recPrintHexLine.Height) :
+				Rectangle.Empty;
+
+			_iPrintHexMaxVBytes = (int)Math.Floor((double)_recPrintHexLine.Height / (double)_charPrintSize.Height);
+			_iPrintHexMaxBytes = _iPrintHexMaxHBytes * _iPrintHexMaxVBytes;
 		}
 
 		private string ByteToHexString(byte b)
@@ -882,6 +960,15 @@ namespace RPHexEditor
 			_endByte = (long)Math.Min(_byteData.Length - 1, _startByte + _iHexMaxBytes - 1);
         }
 
+		void UpdateVisibilityBytesPrint(int startPage)
+		{
+			if (_byteData == null || _byteData.Length == 0)
+				return;
+
+			_startPrintByte = startPage * _iPrintHexMaxBytes;
+			_endPrintByte = (long)Math.Min(_byteData.Length - 1, _startPrintByte + _iPrintHexMaxBytes - 1);
+		}
+
 		private void DrawAddressLine(Graphics g, long startByte, long endByte)
         {
 			Brush lineBrush = new SolidBrush(System.Drawing.SystemColors.GrayText);
@@ -901,11 +988,37 @@ namespace RPHexEditor
             }
         }
 
+		void DrawAddressLinePrint(Graphics g, long startByte, long endByte)
+		{
+			Brush lineBrush = new SolidBrush(System.Drawing.SystemColors.GrayText);
+			long lineAddress = 0;
+			string sLineAddress = string.Empty;
+
+			long lines2Draw = PosToLogPointPrint(endByte + 1 - startByte).Y + 1;
+
+			for (long i = 0; i < lines2Draw; i++)
+			{
+				lineAddress = (_iPrintHexMaxHBytes * i + startByte);
+
+				PointF physBytePos = LogToPhyPointPrint(new PointL(0, i));
+				sLineAddress = lineAddress.ToString(_lineAddressFormat, System.Threading.Thread.CurrentThread.CurrentCulture);
+
+				g.DrawString(sLineAddress, this.Font, lineBrush, new PointF(_recPrintAddressLine.X, physBytePos.Y), _stringFormat);
+			}
+		}
+
 		private void DrawHexByte(Graphics g, byte b, Brush brush, PointL pt)
 		{
 			PointF bytePointF = LogToPhyPoint(pt);
 			string sB = ByteToHexString(b);
-			g.DrawString(sB, this.Font, brush, bytePointF, _stringFormat);
+			g.DrawString(sB, Font, brush, bytePointF, _stringFormat);
+		}
+
+		void DrawHexBytePrint(Graphics g, byte b, Brush brush, PointL pt)
+		{
+			PointF bytePointF = LogToPhyPointPrint(pt);
+			string sB = ByteToHexString(b);
+			g.DrawString(sB, Font, brush, bytePointF, _stringFormat);
 		}
 
 		private void DrawSelectedHexByte(Graphics g, byte b, Brush brush, Brush brushBack, PointL pt, bool isLastSelected)
@@ -917,7 +1030,19 @@ namespace RPHexEditor
 			if (!isLastSelected) rectWidth += _charSize.Width;
 
 			g.FillRectangle(brushBack, bytePointF.X, bytePointF.Y, rectWidth, _charSize.Height);
-			g.DrawString(sB, this.Font, brush, bytePointF, _stringFormat);
+			g.DrawString(sB, Font, brush, bytePointF, _stringFormat);
+		}
+
+		void DrawSelectedHexBytePrint(Graphics g, byte b, Brush brush, Brush brushBack, PointL pt, bool isLastSelected)
+		{
+			PointF bytePointF = LogToPhyPointPrint(pt);
+			string sB = ByteToHexString(b);
+
+			float rectWidth = _charPrintSize.Width * 2;
+			if (!isLastSelected) rectWidth += _charPrintSize.Width;
+
+			g.FillRectangle(brushBack, bytePointF.X, bytePointF.Y, rectWidth, _charPrintSize.Height);
+			g.DrawString(sB, Font, brush, bytePointF, _stringFormat);
 		}
 
 		private void DrawLines(Graphics g, long startByte, long endByte)
@@ -975,6 +1100,61 @@ namespace RPHexEditor
 			}
 		}
 
+		void DrawLinesPrint(Graphics g, long startByte, long endByte)
+		{
+			Brush brush = new SolidBrush(GetDefaultForeColor());
+			Brush selBrush = new SolidBrush(_selectionForeColor);
+			Brush selBrushBack = new SolidBrush(_selectionBackColor);
+			Brush changedBrush = new SolidBrush(Color.IndianRed);
+
+			bool isChanged = false;
+			long counter = 0;
+
+			long tmpEndByte = Math.Min(_byteData.Length - 1, endByte + _iPrintHexMaxHBytes);
+
+			for (long i = startByte; i < tmpEndByte + 1; i++)
+			{
+				byte theByte = _byteData.ReadByte(i, out isChanged);
+
+				PointL gridPoint = PosToLogPointPrint(counter);
+				PointF byteStringPointF = LogToPhyPointASCIIPrint(gridPoint);
+
+				long tmpStartSelection = SelectionStart;
+				long tmpEndSelection = SelectionEnd;
+
+				if (tmpStartSelection > tmpEndSelection)
+				{
+					long tmp = tmpStartSelection;
+					tmpStartSelection = tmpEndSelection;
+					tmpEndSelection = tmp;
+				}
+
+				bool isByteSelected = i >= tmpStartSelection && i <= tmpEndSelection;
+				if (tmpStartSelection < 0 || tmpEndSelection < 0)
+					isByteSelected = false;
+
+				bool isLastBytePos = (gridPoint.X + 1 == _iPrintHexMaxHBytes);
+
+				if (isByteSelected)
+					DrawSelectedHexBytePrint(g, theByte, isChanged ? changedBrush : selBrush, selBrushBack, gridPoint, (i == tmpEndSelection || isLastBytePos));
+				else
+					DrawHexBytePrint(g, theByte, isChanged ? changedBrush : brush, gridPoint);
+
+				if (_drawCharacters)
+				{
+					if (isByteSelected)
+					{
+						g.FillRectangle(selBrushBack, byteStringPointF.X, byteStringPointF.Y, _charPrintSize.Width, _charPrintSize.Height);
+						g.DrawString(GetCharacterFromByte(theByte), Font, isChanged ? changedBrush : selBrush, byteStringPointF, _stringFormat);
+					}
+					else
+						g.DrawString(GetCharacterFromByte(theByte), Font, isChanged ? changedBrush : brush, byteStringPointF, _stringFormat);
+				}
+
+				counter++;
+			}
+		}
+
 		private PointL PosToLogPoint(long bytePosition)
         {
 			long row = (long)Math.Floor((double)bytePosition / (double)_iHexMaxHBytes);
@@ -982,6 +1162,14 @@ namespace RPHexEditor
 
 			return new PointL(column, row);
         }
+
+		PointL PosToLogPointPrint(long bytePosition)
+		{
+			long row = (long)Math.Floor((double)bytePosition / (double)_iPrintHexMaxHBytes);
+			long column = (bytePosition + _iPrintHexMaxHBytes - _iPrintHexMaxHBytes * (row + 1));
+
+			return new PointL(column, row);
+		}
 
 		private PointF PosToPhyPoint(long bytePosition)
         {
@@ -997,6 +1185,13 @@ namespace RPHexEditor
 			return LogToPhyPointASCII(gp);
 		}
 
+		PointF PosToPhyPointASCIIPrint(long bytePosition)
+		{
+			PointL gp = PosToLogPointPrint(bytePosition);
+
+			return LogToPhyPointASCIIPrint(gp);
+		}
+
 		private PointF LogToPhyPoint(PointL pt)
         {
             float x = (3 * _charSize.Width) * pt.X + _recHexLine.X;
@@ -1005,10 +1200,26 @@ namespace RPHexEditor
             return new PointF(x, y);
         }
 
+		PointF LogToPhyPointPrint(PointL pt)
+		{
+			float x = (3 * _charPrintSize.Width) * pt.X + _recPrintHexLine.X;
+			float y = (pt.Y + 1) * _charPrintSize.Height - _charPrintSize.Height + _recPrintHexLine.Y;
+
+			return new PointF(x, y);
+		}
+
 		private PointF LogToPhyPointASCII(PointL pt)
 		{
 			float x = (_charSize.Width) * pt.X + _recCharLine.X;
 			float y = (pt.Y + 1) * _charSize.Height - _charSize.Height + _recCharLine.Y;
+
+			return new PointF(x, y);
+		}
+
+		PointF LogToPhyPointASCIIPrint(PointL pt)
+		{
+			float x = (_charPrintSize.Width) * pt.X + _recPrintCharsLine.X;
+			float y = (pt.Y + 1) * _charPrintSize.Height - _charPrintSize.Height + _recPrintCharsLine.Y;
 
 			return new PointF(x, y);
 		}
@@ -2147,6 +2358,55 @@ namespace RPHexEditor
 		{
 			if (IsCmdFindAvailable)
 				_findData.Find(FindDataOption);
+		}
+
+		public int PrintGetMaxPrintPages(Rectangle rect)
+		{
+			int iRet = 1;
+
+			try
+			{
+				AdjustWindowSizePrint(rect);
+
+				for (int i = 1; ; i++)
+				{
+					UpdateVisibilityBytesPrint(i - 1);
+
+					if (_endPrintByte >= ByteDataSource.Length - 1)
+					{
+						iRet = i;
+						break;
+					}
+				}
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine("Exception raised in RPHexEditorUC.PrintGetMaxPrintPages.\n" + ex.Message);
+			}
+
+			return iRet;
+		}
+
+		public void Print(int iPrintPage, System.Drawing.Printing.PrintPageEventArgs e, ref bool HasMorePages)
+		{
+			if (iPrintPage < 1)
+				throw new ArgumentOutOfRangeException("iPrintPage", "RPHexEditorUC.Print: The value must be greater than or equal to 1.");
+
+			try
+			{
+				AdjustWindowSizePrint(e.MarginBounds);
+				UpdateVisibilityBytesPrint(iPrintPage - 1);
+
+				if (_drawAddressLine) DrawAddressLinePrint(e.Graphics, _startPrintByte, _endPrintByte);
+				DrawLinesPrint(e.Graphics, _startPrintByte, _endPrintByte);
+
+				HasMorePages = (ByteDataSource.Length - 1 > _endPrintByte);
+			}
+			catch (Exception ex)
+			{
+				System.Diagnostics.Debug.WriteLine("Exception raised in RPHexEditorUC.Print.\n" + ex.Message);
+				HasMorePages = false;
+			}
 		}
 
 		private void SetInternalContextMenu()
